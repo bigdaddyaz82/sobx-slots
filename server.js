@@ -1,29 +1,39 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Enable CORS for all origins
 app.use(cors());
+app.use(express.json());
 
-// Serve static files from the root directory
-app.use(express.static(path.join(__dirname, '/')));
+// Slot symbols used by frontend
+const symbols = ['cherry', 'lemon', 'orange', 'seven', 'bar'];
 
-// Spin API endpoint
-app.get('/spin', (req, res) => {
-  const wheels = [
-    Math.floor(Math.random() * 7), // 0 to 6
-    Math.floor(Math.random() * 7),
-    Math.floor(Math.random() * 7),
+// Utility to pick a random symbol
+function getRandomSymbol() {
+  return symbols[Math.floor(Math.random() * symbols.length)];
+}
+
+// POST /api/spin endpoint
+app.post('/api/spin', (req, res) => {
+  const user = req.body.user;
+
+  if (!user) {
+    return res.status(400).json({ error: 'User address is required' });
+  }
+
+  // Generate 3 random symbols for the spin result
+  const result = [
+    getRandomSymbol(),
+    getRandomSymbol(),
+    getRandomSymbol()
   ];
-  res.json({ success: true, wheels });
-});
 
-// SPA fallback route (send index.html on unknown routes)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  // Here you could add your betting logic, payouts, etc.
+
+  // Return spin result
+  res.json({ result });
 });
 
 app.listen(PORT, () => {
