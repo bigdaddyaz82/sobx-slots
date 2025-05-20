@@ -8,12 +8,18 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Your slot machine symbols
 const symbols = ['cherry', 'lemon', 'orange', 'seven', 'bar'];
 
+// Serve static files from the "public" folder
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Slot machine logic
 function getRandomSymbol() {
   return symbols[Math.floor(Math.random() * symbols.length)];
 }
 
+// API route to spin
 app.post('/api/spin', (req, res) => {
   const user = req.body.user;
   if (!user) return res.status(400).json({ error: 'User address is required' });
@@ -27,12 +33,12 @@ app.post('/api/spin', (req, res) => {
   res.json({ result });
 });
 
-app.use(express.static(path.join(__dirname, '/')));
-
+// Fallback to serve index.html on unknown routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
