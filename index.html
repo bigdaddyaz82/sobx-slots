@@ -5,15 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>SOBX Slots</title>
 <style>
-  body {
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
     font-family: Arial, sans-serif;
     background-color: #111;
     color: #fff;
     display: flex;
     flex-direction: column;
+  }
+  body {
     min-height: 100vh;
-    padding: 30px 15px 0;
-    margin: 0;
   }
   .container {
     background-color: #222;
@@ -23,12 +26,31 @@
     box-sizing: border-box;
     text-align: center;
     box-shadow: 0 0 20px #28a745;
-    margin: 0 auto;
+    margin: 30px auto 0 auto;
     flex-grow: 1;
   }
   h1 {
     margin: 0 0 20px 0;
-    font-size: 2.5rem;
+    font-size: 3.2rem;          /* bigger */
+    font-weight: 900;           /* extra bold */
+    color: #00ff99;             /* bright neon green */
+    background: repeating-linear-gradient(
+      45deg,
+      #00ff99,
+      #00ff99 10px,
+      #007f4f 10px,
+      #007f4f 20px
+    );                          /* subtle diagonal stripes */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow:
+      0 0 8px #00ff99,
+      0 0 15px #00ff99,
+      0 0 25px #00ff99,
+      0 0 40px #00ff99,
+      0 0 60px #00ff99;
+    letter-spacing: 2px;
+    user-select: none;
   }
   #walletSection {
     margin-bottom: 25px;
@@ -129,14 +151,26 @@
     min-height: 1.2em;
   }
   footer {
-    width: 100%;
-    max-width: 360px;
-    margin: 20px auto 0;
-    padding: 15px 20px;
     background: #222;
-    border-radius: 12px;
+    color: #ccc;
     text-align: center;
-    box-shadow: 0 0 15px #28a745;
+    padding: 15px 20px;
+    font-size: 0.9rem;
+    box-shadow: 0 -2px 8px #28a745aa;
+    width: 100%;
+    box-sizing: border-box;
+    position: sticky;
+    bottom: 0;
+    user-select: none;
+  }
+  footer a {
+    color: #00ff99;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 0 6px;
+  }
+  footer a:hover {
+    text-decoration: underline;
   }
   #dailyRewardsBtn {
     background-color: #28a745;
@@ -189,8 +223,9 @@
 </div>
 
 <footer>
-  <button id="dailyRewardsBtn">Check Daily Rewards</button>
-  <div id="dailyRewardsStatus"></div>
+  Created by <strong>BigDaddyAZ82</strong>, sponsored by <strong>Reynolds Painting and Resurfacing LLC™</strong> |
+  <a href="https://www.facebook.com/ReynoldsPaintingAndResurfacingLLC" target="_blank" rel="noopener noreferrer">Facebook</a> |
+  <a href="http://www.reynoldspaintingaz.com" target="_blank" rel="noopener noreferrer">reynoldspaintingaz.com</a>
 </footer>
 
 <script>
@@ -253,61 +288,32 @@
     }
   });
 
-  // Bet buttons event listeners
+  // Bet buttons click
   document.getElementById('bet1Btn').addEventListener('click', () => selectBet(1));
   document.getElementById('bet5Btn').addEventListener('click', () => selectBet(5));
   document.getElementById('bet10Btn').addEventListener('click', () => selectBet(10));
   document.getElementById('multiplierBtn').addEventListener('click', toggleMultiplier);
 
-  function getRandomSymbol() {
-    return symbols[Math.floor(Math.random() * symbols.length)];
-  }
-
-  function clearTimeouts() {
-    spinTimeouts.forEach(to => clearTimeout(to));
-    spinTimeouts = [];
-  }
-
-  function animateSpin(finalResult) {
+  // Spin function
+  document.getElementById('spinBtn').addEventListener('click', () => {
     clearTimeouts();
-    const ticks = 15;
-    for (let i = 1; i <= 3; i++) {
-      for (let t = 0; t < ticks; t++) {
-        const timeout = setTimeout(() => {
-          document.getElementById('symbol' + i).textContent = emojiMap[getRandomSymbol()];
-        }, t * 100 + i * 100);
-        spinTimeouts.push(timeout);
-      }
-      setTimeout(() => {
-        document.getElementById('symbol' + i).textContent = emojiMap[finalResult[i - 1]];
-      }, ticks * 100 + i * 100);
-    }
-  }
+    document.getElementById('result').textContent = '';
+    
+    // Spin animations and final result
+    spinTimeouts.push(setTimeout(() => setSymbol(1), 200));
+    spinTimeouts.push(setTimeout(() => setSymbol(2), 600));
+    spinTimeouts.push(setTimeout(() => setSymbol(3), 1000));
 
-  function spin() {
-    const wallet = document.getElementById('wallet').value.trim();
-    const walletMessage = document.getElementById('walletMessage');
-    const resultDiv = document.getElementById('result');
-    walletMessage.textContent = '';
-    resultDiv.textContent = '';
-
-    if (!wallet) {
-      walletMessage.textContent = 'Please enter your wallet address.';
-      walletMessage.style.color = '#f44336';
-      return;
+    function setSymbol(position) {
+      const symbolName = symbols[Math.floor(Math.random() * symbols.length)];
+      document.getElementById('symbol' + position).textContent = emojiMap[symbolName];
+      if (position === 3) checkResult();
     }
 
-    // Generate 3 random symbols
-    const finalResult = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
+    function checkResult() {
+      const s1 = document.getElementById('symbol1').textContent;
+      const s2 = document.getElementById('symbol2').textContent;
+      const s3 = document.getElementById('symbol3').textContent;
+      const resultDiv = document.getElementById('result');
 
-    animateSpin(finalResult);
-
-    // After animation ends (approx 2 seconds), evaluate result
-    setTimeout(() => {
-      // Count matches
-      const [a, b, c] = finalResult;
-      let message = '';
-      let payout = 0;
-      let baseWin = selectedBet * (multiplierActive ? 2 : 1);
-
-      if (a === b && b === c)
+      if (s1 === s2 && s2 === s3
