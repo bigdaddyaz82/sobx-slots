@@ -108,12 +108,14 @@
 
 <h1>SOBX Slot Machine</h1>
 
+<!-- Wallet input and connect button -->
 <div>
-  <input type="text" id="wallet" placeholder="Enter or connect your wallet address" autocomplete="off" readonly />
+  <input type="text" id="wallet" placeholder="Enter your wallet address" autocomplete="off" />
   <br />
-  <button id="connectWalletBtn">Connect Wallet</button>
+  <button onclick="connectWallet()">Connect Wallet</button>
 </div>
 
+<!-- Slot machine wheels -->
 <div class="slot-machine">
   <div class="symbol" id="symbol1">?</div>
   <div class="symbol" id="symbol2">?</div>
@@ -128,10 +130,11 @@
 </div>
 
 <div>
-  <button style="margin-top:20px; font-size:1.2rem; padding:12px 40px;" id="spinButton">Spin</button>
+  <button style="margin-top:20px; font-size:1.2rem; padding:12px 40px;" onclick="spin()">Spin</button>
 </div>
 
 <div id="result"></div>
+<div id="dailyBonus" style="margin-top: 15px; font-size: 1.1rem; color: #ffc107;"></div>
 
 <button id="musicToggle" onclick="toggleMusic()">Music: Off</button>
 
@@ -140,7 +143,6 @@
 <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_4f0d3f142a.mp3?filename=winning-coin-4933.mp3" preload="auto"></audio>
 <audio id="loseSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_c464aa6f30.mp3?filename=slot-machine-losing-sound-4603.mp3" preload="auto"></audio>
 
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <script>
   const symbols = ['cherry', 'lemon', 'orange', 'seven', 'bar', 'grape', 'diamond', 'skull', 'apple', 'parrot', 'horseshoe', 'clover', 'star'];
   const emojiMap = {
@@ -162,20 +164,19 @@
   let selectedBet = 1;
   let multiplierActive = false;
   let spinTimeouts = [];
-  let userWallet = null;
 
   window.onload = () => {
     selectBet(selectedBet);
-    document.getElementById('connectWalletBtn').addEventListener('click', connectWallet);
-    document.getElementById('spinButton').addEventListener('click', spin);
+    checkDailyBonus();
   };
 
   function selectBet(amount) {
     selectedBet = amount;
 
-    ['bet1Btn','bet5Btn','bet10Btn'].forEach(id => {
-      document.getElementById(id).classList.remove('selected');
-    });
+    document.getElementById('bet1Btn').classList.remove('selected');
+    document.getElementById('bet5Btn').classList.remove('selected');
+    document.getElementById('bet10Btn').classList.remove('selected');
+
     document.getElementById('bet' + amount + 'Btn').classList.add('selected');
   }
 
@@ -184,16 +185,15 @@
     document.getElementById('multiplierBtn').classList.toggle('selected');
   }
 
-  async function connectWallet() {
+  function connectWallet() {
+    const walletInput = document.getElementById('wallet');
     if (window.ethereum) {
-      try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        userWallet = accounts[0];
-        document.getElementById('wallet').value = userWallet;
-        alert('Wallet connected: ' + userWallet);
-      } catch (err) {
-        alert('Wallet connection failed: ' + err.message);
-      }
+      window.ethereum.request({ method: 'eth_requestAccounts' })
+      .then(accounts => {
+        walletInput.value = accounts[0];
+        alert('Wallet connected: ' + accounts[0]);
+      })
+      .catch(err => alert('Wallet connection failed: ' + err.message));
     } else {
       alert('MetaMask or Ethereum wallet not detected.');
     }
@@ -203,59 +203,107 @@
     return symbols[Math.floor(Math.random() * symbols.length)];
   }
 
-  function clearTimeouts() {
-    spinTimeouts.forEach(timeout => clearTimeout(timeout));
-    spinTimeouts = [];
-  }
-
   function animateSpin(finalResult) {
     clearTimeouts();
     const ticks = 25;
     for (let i = 1; i <= 3; i++) {
+      spinTimeouts[i] = [];
       for (let t = 0; t < ticks; t++) {
         const timeout = setTimeout(() => {
           document.getElementById('symbol'+i).textContent = emojiMap[getRandomSymbol()];
-        }, t * 100 + i * 150);
-        spinTimeouts.push(timeout);
+        }, t * 100 + i*100);
+        spinTimeouts[i].push(timeout);
       }
-      // Set final symbol
-      const timeout = setTimeout(() => {
+      setTimeout(() => {
         document.getElementById('symbol'+i).textContent = emojiMap[finalResult[i-1]];
-      }, ticks * 100 + i * 150);
-      spinTimeouts.push(timeout);
+      }, ticks * 100 + i*100);
     }
   }
 
-  async function sendSOBXReward(amount) {
-    if (!userWallet) {
-      alert('Wallet not connected.');
-      return;
-    }
-
-    const SOBX_TOKEN_ADDRESS = '0x99c76e2311ebe008c59226b826c2b96e39e9428b';
-    const SOBX_ABI = [
-      "function transfer(address to, uint amount) public returns (bool)"
-    ];
-
-    try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(SOBX_TOKEN_ADDRESS, SOBX_ABI, signer);
-
-      const tx = await contract.transfer(userWallet, ethers.utils.parseUnits(amount.toString(), 18));
-      await tx.wait();
-      alert(`${amount} SOBX tokens sent to your wallet!`);
-    } catch (err) {
-      console.error('Token transfer failed:', err);
-      alert('Token transfer failed. Please try again.');
+  function clearTimeouts() {
+    for (let i = 1; i <= 3; i++) {
+      if(spinTimeouts[i]) {
+        spinTimeouts[i].forEach(to => clearTimeout(to));
+      }
     }
   }
 
-  async function spin() {
-    if (!userWallet) {
-      alert('Please connect your wallet first.');
+  function isDoubleWinWeekend() {
+    const today = new Date().getDay();
+    return today === 0 || today === 6;
+  }
+
+  function spin() {
+    const wallet = document.getElementById('wallet').value.trim();
+    if (!wallet) {
+      alert('Please enter or connect your wallet address first.');
       return;
     }
 
     const spinSound = document.getElementById('spinSound');
-    const winSound
+    const winSound = document.getElementById('winSound');
+    const loseSound = document.getElementById('loseSound');
+
+    spinSound.currentTime = 0;
+    spinSound.play();
+
+    // Generate three random symbols
+    let resultSymbols = [];
+    for(let i=0; i<3; i++) {
+      resultSymbols.push(getRandomSymbol());
+    }
+
+    animateSpin(resultSymbols);
+
+    setTimeout(() => {
+      // Determine if player won: all three symbols match
+      const allMatch = resultSymbols.every(s => s === resultSymbols[0]);
+
+      let baseWin = 0;
+      if (allMatch) {
+        // Simple payout based on symbol rarity or fixed value
+        switch(resultSymbols[0]) {
+          case 'seven': baseWin = 100; break;
+          case 'diamond': baseWin = 75; break;
+          case 'bar': baseWin = 50; break;
+          case 'cherry': baseWin = 25; break;
+          default: baseWin = 10;
+        }
+      }
+
+      // Apply bet and multiplier
+      let totalWin = baseWin * selectedBet;
+      if(multiplierActive) totalWin *= 2;
+
+      const resultText = allMatch
+        ? `You won ${totalWin} SOBX tokens!`
+        : 'No win, try again!';
+
+      document.getElementById('result').textContent = resultText;
+
+      if(allMatch) {
+        winSound.play();
+      } else {
+        loseSound.play();
+      }
+    }, 3500);
+  }
+
+  function toggleMusic() {
+    const music = document.getElementById('backgroundMusic');
+    const btn = document.getElementById('musicToggle');
+    if(music.paused) {
+      music.play();
+      btn.textContent = 'Music: On';
+    } else {
+      music.pause();
+      btn.textContent = 'Music: Off';
+    }
+  }
+
+  function checkDailyBonus() {
+    const bonusDiv = document.getElementById('dailyBonus');
+    const lastBonus = localStorage.getItem('lastDailyBonus');
+    const now = Date.now();
+
+    if(lastBonus && now - lastBonus <
