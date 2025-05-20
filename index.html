@@ -15,8 +15,17 @@
     margin-top: 30px;
     font-size: 2.5rem;
   }
+  /* New container box wrapping all main content under title */
+  #mainBox {
+    background-color: #222;
+    max-width: 440px;
+    margin: 20px auto 40px auto;
+    padding: 30px 25px 40px 25px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px #0f9d58cc;
+  }
+
   #walletSection {
-    margin-top: 15px;
     margin-bottom: 40px;
   }
   #wallet {
@@ -111,27 +120,29 @@
 
 <h1>SOBX Slot Machine</h1>
 
-<div id="walletSection">
-  <input type="text" id="wallet" placeholder="Enter your wallet address" />
-  <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+<div id="mainBox">
+  <div id="walletSection">
+    <input type="text" id="wallet" placeholder="Enter your wallet address" />
+    <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+  </div>
+
+  <div class="slot-machine">
+    <div class="symbol" id="symbol1">?</div>
+    <div class="symbol" id="symbol2">?</div>
+    <div class="symbol" id="symbol3">?</div>
+  </div>
+
+  <div class="buttons-row">
+    <button class="betBtn" id="bet1Btn" onclick="selectBet(1)">Bet 1</button>
+    <button class="betBtn" id="bet5Btn" onclick="selectBet(5)">Bet 5</button>
+    <button class="betBtn" id="bet10Btn" onclick="selectBet(10)">Bet 10</button>
+    <button class="betBtn" id="multiplierBtn" onclick="toggleMultiplier()">×2</button>
+  </div>
+
+  <button id="spinBtn" onclick="spin()">Spin</button>
+
+  <div id="result"></div>
 </div>
-
-<div class="slot-machine">
-  <div class="symbol" id="symbol1">?</div>
-  <div class="symbol" id="symbol2">?</div>
-  <div class="symbol" id="symbol3">?</div>
-</div>
-
-<div class="buttons-row">
-  <button class="betBtn" id="bet1Btn" onclick="selectBet(1)">Bet 1</button>
-  <button class="betBtn" id="bet5Btn" onclick="selectBet(5)">Bet 5</button>
-  <button class="betBtn" id="bet10Btn" onclick="selectBet(10)">Bet 10</button>
-  <button class="betBtn" id="multiplierBtn" onclick="toggleMultiplier()">×2</button>
-</div>
-
-<button id="spinBtn" onclick="spin()">Spin</button>
-
-<div id="result"></div>
 
 <script>
   const symbols = ['cherry', 'lemon', 'orange', 'seven', 'bar', 'grape', 'diamond', 'skull', 'apple', 'parrot', 'horseshoe', 'clover', 'star'];
@@ -276,3 +287,4 @@
 </script>
 
 </body>
+</html>
