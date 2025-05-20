@@ -216,3 +216,76 @@
       winnings = bet * 5;
     } else if (a === b || b === c || a === c) {
       winnings
+<script>
+  // Continue calculateWinnings
+  function calculateWinnings(results, bet) {
+    const [a, b, c] = results;
+    let winnings = 0;
+    if (a === b && b === c) {
+      winnings = bet * 5;
+    } else if (a === b || b === c || a === c) {
+      winnings = bet * 2;
+    }
+    // Weekend bonus
+    const day = new Date().getDay();
+    const isWeekend = (day === 0 || day === 6); // Sunday=0, Saturday=6
+    if (isWeekend) winnings *= 2;
+    return winnings;
+  }
+
+  async function sendTokens(to, amount) {
+    try {
+      const amountWei = toWei(amount, decimals);
+      await sobexContract.methods.transfer(to, amountWei).send({ from: accounts[0] });
+    } catch (err) {
+      throw new Error("Transfer failed: " + err.message);
+    }
+  }
+
+  async function spinSlots() {
+    messageEl.textContent = "";
+    const bet = parseFloat(betAmountInput.value);
+    if (isNaN(bet) || bet <= 0 || bet > userBalance) {
+      messageEl.textContent = "Invalid bet amount.";
+      return;
+    }
+
+    try {
+      // Deduct bet
+      await sendTokens(SOBEX_TOKEN_ADDRESS, bet); // Send to your game treasury
+
+      const result = spinResult();
+      slotEls.forEach((slot, i) => slot.textContent = result[i]);
+
+      const winnings = calculateWinnings(result, bet);
+      if (winnings > 0) {
+        await sendTokens(accounts[0], winnings);
+        messageEl.textContent = `You won ${winnings} SOBEX!`;
+      } else {
+        messageEl.textContent = "No match. Try again!";
+      }
+
+      await updateUserBalance();
+    } catch (err) {
+      messageEl.textContent = err.message;
+    }
+  }
+
+  spinBtn.addEventListener("click", spinSlots);
+
+  claimBonusBtn.addEventListener("click", async () => {
+    try {
+      const bonusAmount = 25;
+      await sendTokens(accounts[0], bonusAmount);
+      setClaimedToday();
+      claimBonusBtn.disabled = true;
+      messageEl.textContent = "Daily bonus claimed!";
+      await updateUserBalance();
+    } catch (err) {
+      messageEl.textContent = "Bonus claim failed: " + err.message;
+    }
+  });
+
+  connectBtn.addEventListener("click", connectWallet);
+  disconnectBtn.addEventListener("click", disconnectWallet);
+</script>
