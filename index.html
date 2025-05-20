@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SOBX Slots</title>
   <style>
     body {
@@ -11,32 +11,28 @@
       background-color: #111;
       color: #fff;
     }
-
     h1 {
       margin-top: 30px;
       font-size: 2.5rem;
     }
-
     .slot-machine {
       display: flex;
       justify-content: center;
       margin-top: 50px;
       margin-bottom: 30px;
     }
-
     .symbol {
-      width: 120px;
-      height: 120px;
+      width: 140px;
+      height: 140px;
       border: 4px solid #fff;
       margin: 0 10px;
-      font-size: 3rem;
+      font-size: 4rem;
       display: flex;
       justify-content: center;
       align-items: center;
       background-color: #333;
       border-radius: 10px;
     }
-
     button {
       padding: 15px 30px;
       font-size: 1rem;
@@ -47,27 +43,24 @@
       border-radius: 8px;
       cursor: pointer;
     }
-
     button:hover {
       background-color: #218838;
     }
-
     #result {
       margin-top: 20px;
       font-size: 1.2rem;
     }
-
     .button-group {
       margin-top: 50px;
     }
-
     input[type="text"] {
       padding: 10px;
-      width: 300px;
+      width: 320px;
       font-size: 1rem;
       margin-top: 30px;
       border-radius: 5px;
       border: 1px solid #ccc;
+      color: #000;
     }
   </style>
 </head>
@@ -81,8 +74,8 @@
   </div>
 
   <div class="button-group">
-    <input type="text" id="wallet" placeholder="Enter wallet address" />
-    <br/>
+    <input type="text" id="wallet" placeholder="Connect wallet to get address" readonly />
+    <br />
     <button onclick="connectWallet()">Connect Wallet</button>
     <button onclick="spin()">Spin</button>
   </div>
@@ -106,14 +99,28 @@
       parrot: '🦜'
     };
 
+    async function connectWallet() {
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+          const userAddress = accounts[0];
+          document.getElementById('wallet').value = userAddress;
+          alert('Wallet connected: ' + userAddress);
+        } catch (err) {
+          alert('Wallet connection rejected');
+        }
+      } else {
+        alert('MetaMask or compatible wallet not found. Please install it first.');
+      }
+    }
+
     async function spin() {
       const user = document.getElementById('wallet').value;
       if (!user) {
-        alert('Please enter your wallet address first.');
+        alert('Please connect your wallet first.');
         return;
       }
 
-      // Call your backend API to spin (replace URL if needed)
       try {
         const response = await fetch('/api/spin', {
           method: 'POST',
@@ -127,23 +134,16 @@
           return;
         }
 
-        // Show symbols in the boxes
-        for(let i=1; i<=3; i++) {
-          const symbolName = data.result[i-1];
-          document.getElementById('symbol'+i).textContent = emojiMap[symbolName] || '?';
+        for (let i = 1; i <= 3; i++) {
+          const symbolName = data.result[i - 1];
+          document.getElementById('symbol' + i).textContent = emojiMap[symbolName] || '?';
         }
 
-        // Show a simple message if all three match or not
-        const allMatch = data.result.every(s => s === data.result[0]);
+        const allMatch = data.result.every((s) => s === data.result[0]);
         document.getElementById('result').textContent = allMatch ? 'You win!' : 'Try again!';
       } catch (err) {
         document.getElementById('result').textContent = 'Error spinning: ' + err.message;
       }
-    }
-
-    // Dummy connectWallet function for now
-    function connectWallet() {
-      alert('Wallet connect feature coming soon!');
     }
   </script>
 </body>
