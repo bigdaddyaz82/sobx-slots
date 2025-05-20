@@ -108,16 +108,18 @@
 
 <h1>SOBX Slot Machine</h1>
 
-<div class="slot-machine">
-  <div class="symbol" id="symbol1">?</div>
-  <div class="symbol" id="symbol2">?</div>
-  <div class="symbol" id="symbol3">?</div>
-</div>
-
+<!-- Moved wallet input and connect button directly under title -->
 <div>
   <input type="text" id="wallet" placeholder="Enter your wallet address" autocomplete="off" />
   <br />
   <button onclick="connectWallet()">Connect Wallet</button>
+</div>
+
+<!-- Moved slot machine wheels below wallet connect -->
+<div class="slot-machine">
+  <div class="symbol" id="symbol1">?</div>
+  <div class="symbol" id="symbol2">?</div>
+  <div class="symbol" id="symbol3">?</div>
 </div>
 
 <div class="buttons-row">
