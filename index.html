@@ -217,7 +217,6 @@
       if(allMatch && playerWins){
         // Calculate payout
         let payout = selectedBet * 2;
-        if(multiplierOn) payout *= 2;
         document.getElementById('result').textContent = `You win! Payout: ${payout} tokens.`;
       } else {
         document.getElementById('result').textContent = `You lost ${selectedBet} tokens. Try again!`;
