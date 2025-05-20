@@ -1,78 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SOBX Slots</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #222; color: #eee; text-align: center; padding: 2rem; }
-    button { font-size: 1.2rem; padding: 1rem 2rem; margin: 1rem; cursor: pointer; }
-    #walletAddress { margin-top: 1rem; font-weight: bold; }
-    #result { margin-top: 2rem; font-size: 1.5rem; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SOBX Slots - Spin That Shit</title>
+<style>
+  body {
+    background: #121212;
+    color: #eee;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    padding: 20px;
+  }
+  h1 {
+    margin-bottom: 10px;
+    color: #00ff99;
+    text-shadow: 0 0 10px #00ff99;
+  }
+  #connectBtn, #spinBtn {
+    background: #00ff99;
+    border: none;
+    color: #121212;
+    font-weight: bold;
+    padding: 15px 30px;
+    margin: 15px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: background 0.3s ease;
+  }
+  #connectBtn:hover, #spinBtn:hover {
+    background: #00cc77;
+  }
+  #reels {
+    margin: 40px auto;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    user-select: none;
+  }
+  .reel {
+    background: #222;
+    border-radius: 15px;
+    box-shadow: 0 0 15px #00ff99;
+    width: 80px;
+    height: 80px;
+    font-size: 4rem;
+    line-height: 80px;
+    font-weight: 900;
+    color: #00ff99;
+    overflow: hidden;
+    position: relative;
+  }
+  .reel span {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 80px;
+    line-height: 80px;
+    left: 0;
+    top: 0;
+    animation: spinAnim 0.6s ease-in-out forwards;
+  }
+  @keyframes spinAnim {
+    0% { top: -80px; opacity: 0; }
+    50% { top: 40px; opacity: 1; }
+    100% { top: 0; opacity: 1; }
+  }
+  #spinResult {
+    font-size: 1.5rem;
+    margin-top: 25px;
+    min-height: 2em;
+    color: #00ff99;
+    text-shadow: 0 0 8px #00ff99;
+  }
+</style>
 </head>
 <body>
-  <h1>SOBX Slots Machine</h1>
-  <button id="connectWalletBtn">Connect Wallet</button>
-  <div id="walletAddress">Wallet: Not Connected</div>
 
-  <button id="spinBtn" disabled>Spin the Wheel</button>
-  <div id="result"></div>
+<h1>SOBX Slot Machine</h1>
 
-  <script>
-    let userAddress = null;
+<button id="connectBtn">Connect Wallet</button>
+<button id="spinBtn" disabled>Spin the Wheels</button>
 
-    async function connectWallet() {
-      if (typeof window.ethereum === 'undefined') {
-        alert('MetaMask is not installed. Please install it to play.');
-        return;
-      }
+<div id="reels">
+  <div class="reel"><span>?</span></div>
+  <div class="reel"><span>?</span></div>
+  <div class="reel"><span>?</span></div>
+</div>
 
+<div id="spinResult"></div>
+
+<script>
+  let userAddress = null;
+
+  const symbols = ['🍒', '🍋', '🍊', '7️⃣', '⭐'];
+
+  async function connectWallet() {
+    if (window.ethereum) {
       try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
         userAddress = accounts[0];
-        document.getElementById('walletAddress').textContent = 'Wallet: ' + userAddress;
+        document.getElementById('connectBtn').textContent = 'Connected: ' + userAddress.slice(0,6) + '...' + userAddress.slice(-4);
         document.getElementById('spinBtn').disabled = false;
+        document.getElementById('spinResult').textContent = '';
       } catch (err) {
-        alert('Wallet connection failed: ' + err.message);
+        alert('Connection failed: ' + err.message);
       }
+    } else {
+      alert('MetaMask not detected. Install MetaMask and refresh.');
+    }
+  }
+
+  async function spin() {
+    if (!userAddress) {
+      alert('Connect wallet first!');
+      return;
     }
 
-    async function spinWheel() {
-      if (!userAddress) {
-        alert('Connect your wallet first!');
-        return;
-      }
+    const reels = document.querySelectorAll('.reel span');
+    document.getElementById('spinResult').textContent = 'Spinning...';
 
-      document.getElementById('result').textContent = 'Spinning...';
+    // Start quick spinning animation by cycling symbols fast
+    let spinCount = 0;
+    const spinMax = 20;
+    const spinInterval = setInterval(() => {
+      reels.forEach(r => {
+        r.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        r.style.animation = 'spinAnim 0.6s ease-in-out forwards';
+      });
+      spinCount++;
+      if (spinCount >= spinMax) clearInterval(spinInterval);
+    }, 100);
 
-      try {
-        const response = await fetch('/spin', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ address: userAddress }),
-        });
+    // Call your backend spin endpoint (adjust URL if needed)
+    try {
+      const response = await fetch('/api/spin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: userAddress })
+      });
 
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
+      if (!response.ok) throw new Error('Server error ' + response.status);
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (data.success) {
-          document.getElementById('result').textContent = 'You won: ' + data.reward + ' SOBX!';
-        } else {
-          document.getElementById('result').textContent = 'Spin failed: ' + data.message;
-        }
-      } catch (error) {
-        document.getElementById('result').textContent = 'Error: ' + error.message;
-      }
+      // Stop animation after spinMax * 100ms
+      await new Promise(resolve => setTimeout(resolve, spinMax * 100));
+
+      // Show the actual result symbols with a smooth animation
+      data.result.forEach((sym, i) => {
+        const emojiMap = {
+          cherry: '🍒',
+          lemon: '🍋',
+          orange: '🍊',
+          seven: '7️⃣',
+          bar: '⭐'
+        };
+        reels[i].textContent = emojiMap[sym] || sym;
+        reels[i].style.animation = 'spinAnim 0.6s ease-in-out forwards';
+      });
+
+      document.getElementById('spinResult').textContent = 'Spin complete! Good luck!';
+
+    } catch (err) {
+      document.getElementById('spinResult').textContent = '';
+      alert('Spin failed: ' + err.message);
     }
+  }
 
-    document.getElementById('connectWalletBtn').addEventListener('click', connectWallet);
-    document.getElementById('spinBtn').addEventListener('click', spinWheel);
-  </script>
+  document.getElementById('connectBtn').onclick = connectWallet;
+  document.getElementById('spinBtn').onclick = spin;
+</script>
+
 </body>
 </html>
