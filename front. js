@@ -1,28 +1,84 @@
-document.getElementById('spinButton').addEventListener('click', async () => {
-  const betAmount = getSelectedBetAmount(); // implement your UI logic for this
+// front.js
 
-  if (betAmount < 1) {
-    alert('Select a valid bet amount!');
+const connectWalletButton = document.getElementById('connectWalletButton');
+const walletAddressElement = document.getElementById('walletAddress');
+const gameDiv = document.getElementById('game');
+const betInput = document.getElementById('betInput');
+const spinButton = document.getElementById('spinButton');
+const spinResultEl = document.getElementById('spinResult');
+const payoutEl = document.getElementById('payout');
+const balanceEl = document.getElementById('balance');
+const messageEl = document.getElementById('message');
+
+let signer, ethersProvider, userAddress;
+
+// Initialize Web3Modal with Coinbase Wallet provider only
+const providerOptions = {
+  coinbasewallet: {
+    package: CoinbaseWalletSDK,
+    options: {
+      appName: "SOBEX Slot Machine",
+      darkMode: false
+    }
+  }
+};
+
+const web3Modal = new window.Web3Modal.default({
+  cacheProvider: false,
+  providerOptions
+});
+
+connectWalletButton.addEventListener('click', async () => {
+  try {
+    const provider = await web3Modal.connect();
+    ethersProvider = new ethers.providers.Web3Provider(provider);
+    signer = ethersProvider.getSigner();
+    userAddress = await signer.getAddress();
+
+    walletAddressElement.textContent = `Connected wallet: ${userAddress}`;
+    connectWalletButton.textContent = 'Wallet Connected';
+    connectWalletButton.disabled = true;
+
+    gameDiv.style.display = 'block';
+    balanceEl.textContent = 'Balance: Loading...';
+
+  } catch (error) {
+    walletAddressElement.textContent = 'Wallet connection failed or cancelled.';
+    console.error(error);
+  }
+});
+
+spinButton.addEventListener('click', async () => {
+  const bet = Number(betInput.value);
+  if (!bet || bet < 1) {
+    messageEl.textContent = 'Enter a valid bet amount (1 or more).';
     return;
   }
 
+  messageEl.textContent = 'Spinning...';
+
   try {
-    const response = await fetch('http://localhost:3000/api/spin', { // Change to your backend URL
+    const response = await fetch('http://localhost:3000/api/spin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bet: betAmount }),
+      body: JSON.stringify({ bet })
     });
 
-    if (!response.ok) throw new Error('Spin failed');
+    if (!response.ok) {
+      const errorData = await response.json();
+      messageEl.textContent = `Error: ${errorData.error || 'Unknown error'}`;
+      return;
+    }
 
     const data = await response.json();
 
-    // Update UI with spin result
-    document.getElementById('spinResult').textContent = data.spinResult.join(' | ');
-    document.getElementById('message').textContent = data.message;
-    document.getElementById('balance').textContent = `Balance: ${data.balance} SOBEX`;
+    spinResultEl.textContent = `Spin Result: ${data.spinResult.join(' | ')}`;
+    payoutEl.textContent = `Payout: ${data.payout.toFixed(2)} SOBEX`;
+    balanceEl.textContent = `Balance: ${data.balance.toFixed(2)} SOBEX`;
+    messageEl.textContent = data.message;
 
-  } catch (error) {
-    alert('Error spinning: ' + error.message);
+  } catch (err) {
+    messageEl.textContent = 'Failed to call spin API.';
+    console.error(err);
   }
 });
