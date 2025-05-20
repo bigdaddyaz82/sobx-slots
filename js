@@ -1,38 +1,39 @@
 const express = require('express');
-const path = require('path');
 const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Enable CORS so frontend can talk to backend if separate origins
 app.use(cors());
-
-// Serve static frontend files from root
-app.use(express.static(path.join(__dirname)));
-
-// Parse JSON bodies for POST requests
 app.use(express.json());
 
-// Spin endpoint — this is where the spin logic happens
+// Slot symbols used by frontend
+const symbols = ['cherry', 'lemon', 'orange', 'seven', 'bar'];
+
+// Utility to pick a random symbol
+function getRandomSymbol() {
+  return symbols[Math.floor(Math.random() * symbols.length)];
+}
+
+// POST /api/spin endpoint
 app.post('/api/spin', (req, res) => {
-  // Simulate slot machine spin results
-  const slots = ['🍎', '🍌', '🍒', '🍇', '7️⃣'];
-  
-  // Generate three random results
-  const result = [];
-  for (let i = 0; i < 3; i++) {
-    const randIndex = Math.floor(Math.random() * slots.length);
-    result.push(slots[randIndex]);
+  const user = req.body.user;
+
+  if (!user) {
+    return res.status(400).json({ error: 'User address is required' });
   }
 
-  // Send the spin results back to frontend
-  res.json({ success: true, result });
-});
+  // Generate 3 random symbols for the spin result
+  const result = [
+    getRandomSymbol(),
+    getRandomSymbol(),
+    getRandomSymbol()
+  ];
 
-// For SPA fallback
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  // Here you could add your betting logic, payouts, etc.
+
+  // Return spin result
+  res.json({ result });
 });
 
 app.listen(PORT, () => {
