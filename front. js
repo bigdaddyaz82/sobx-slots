@@ -110,6 +110,52 @@ document.getElementById("spinButton").onclick = async () => {
     } catch (err) {
       console.error(err);
       alert("Transfer failed.");
+    }// your existing game code (spin logic, etc.)
+
+// === SOBEX Spin-to-Win Code Starts Here ===
+const sobexTokenAddress = "0x99c76e2311ebe008c59226b826c2b96e39e9428b";
+const sobexAbi = [
+  "function transfer(address to, uint256 amount) public returns (bool)",
+  "function decimals() view returns (uint8)"
+];
+
+let provider, signer, userAddress;
+
+document.getElementById("connectWallet").onclick = async () => {
+  if (window.ethereum) {
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    userAddress = await signer.getAddress();
+    document.getElementById("walletAddress").innerText = `Connected: ${userAddress}`;
+  } else {
+    alert("MetaMask not detected!");
+  }
+};
+
+document.getElementById("spinButton").onclick = async () => {
+  if (!signer) {
+    alert("Connect your wallet first!");
+    return;
+  }
+
+  const spinWin = Math.random() < 0.3; // 30% win rate
+  document.getElementById("spinResult").innerText = spinWin ? "You won!" : "You lost. Try again!";
+
+  if (spinWin) {
+    const sobexContract = new ethers.Contract(sobexTokenAddress, sobexAbi, signer);
+    const decimals = await sobexContract.decimals();
+    const amount = ethers.utils.parseUnits("10", decimals); // Send 10 SOBEX
+
+    try {
+      const tx = await sobexContract.transfer(userAddress, amount);
+      await tx.wait();
+      alert(`Success! 10 SOBEX sent to ${userAddress}`);
+    } catch (err) {
+      console.error(err);
+      alert("Transfer failed.");
     }
+  }
+};
   }
 };
