@@ -1,0 +1,5 @@
+# Ignore environment files with secrets
+.env
+
+# Ignore node modules folder if you use Node.js packages
+node_modules/
