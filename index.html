@@ -17,53 +17,37 @@
     color: #00ff99;
     text-shadow: 0 0 10px #00ff99;
   }
-  #buttonContainer {
+  #controls {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 20px;
-    margin-bottom: 30px;
+    gap: 15px;
+    margin-bottom: 25px;
   }
-  #leftButtons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  button {
+  button, select {
     border: none;
     border-radius: 10px;
     font-weight: bold;
     cursor: pointer;
-    transition: background 0.3s ease;
     font-size: 1.1rem;
-    padding: 12px 25px;
-    user-select: none;
-  }
-  #connectBtn {
-    background: #00ff99;
+    padding: 12px 20px;
+    transition: background 0.3s ease;
     color: #121212;
-  }
-  #connectBtn:hover {
-    background: #00cc77;
-  }
-  #betBtn {
     background: #00ff99;
-    color: #121212;
   }
-  #betBtn:hover {
+  button:hover, select:hover {
     background: #00cc77;
   }
   #spinBtn {
-    background: #e02929; /* bold red */
-    color: #eee;
-    padding: 20px 50px;
-    font-size: 1.4rem;
-    box-shadow: 0 0 15px #e02929;
-    flex-shrink: 0;
+    background: #ff3333; /* bright red */
+    color: white;
+    font-size: 1.6rem;
+    padding: 18px 50px;
+    font-weight: 900;
+    box-shadow: 0 0 15px #ff3333;
   }
   #spinBtn:hover {
-    background: #b72121;
-    box-shadow: 0 0 20px #b72121;
+    background: #cc0000;
   }
   #reels {
     margin: 40px auto;
@@ -107,29 +91,24 @@
     color: #00ff99;
     text-shadow: 0 0 8px #00ff99;
   }
-  /* Confetti styles */
-  .confetti-piece {
-    position: fixed;
-    width: 8px;
-    height: 8px;
-    background-color: #00ff99;
-    opacity: 0.9;
-    z-index: 9999;
-    pointer-events: none;
-    will-change: transform;
-  }
 </style>
 </head>
 <body>
 
 <h1>SOBX Slot Machine</h1>
 
-<div id="buttonContainer">
-  <div id="leftButtons">
-    <button id="connectBtn">Connect Wallet</button>
-    <button id="betBtn" disabled>Bet 1 SOBX</button>
-  </div>
-  <button id="spinBtn" disabled>SPIN THE WHEELS</button>
+<div id="controls">
+  <button id="connectBtn">Connect Wallet</button>
+
+  <select id="betAmount">
+    <option value="0.01">Bet 0.01 SOBX</option>
+    <option value="0.05">Bet 0.05 SOBX</option>
+    <option value="0.1">Bet 0.1 SOBX</option>
+    <option value="0.5">Bet 0.5 SOBX</option>
+    <option value="1">Bet 1 SOBX</option>
+  </select>
+
+  <button id="spinBtn" disabled>SPIN</button>
 </div>
 
 <div id="reels">
@@ -142,37 +121,8 @@
 
 <script>
   let userAddress = null;
-  let currentBet = 1;
 
   const symbols = ['🍒', '🍋', '🍊', '7️⃣', '⭐'];
-
-  // Confetti animation helper
-  function launchConfetti() {
-    const colors = ['#00ff99', '#00cc77', '#00eeaa'];
-    const numPieces = 40;
-    for(let i = 0; i < numPieces; i++) {
-      const confetti = document.createElement('div');
-      confetti.classList.add('confetti-piece');
-      confetti.style.backgroundColor = colors[i % colors.length];
-      confetti.style.left = Math.random() * window.innerWidth + 'px';
-      confetti.style.top = '-10px';
-      confetti.style.transform = `rotate(${Math.random()*360}deg)`;
-      document.body.appendChild(confetti);
-
-      const fallDuration = 2000 + Math.random() * 2000;
-
-      confetti.animate([
-        { transform: `translateY(0) rotate(${Math.random()*360}deg)` },
-        { transform: `translateY(${window.innerHeight + 50}px) rotate(${Math.random()*360 + 720}deg)` }
-      ], {
-        duration: fallDuration,
-        easing: 'ease-out',
-        fill: 'forwards'
-      });
-
-      setTimeout(() => confetti.remove(), fallDuration);
-    }
-  }
 
   async function connectWallet() {
     if (window.ethereum) {
@@ -181,7 +131,6 @@
         userAddress = accounts[0];
         document.getElementById('connectBtn').textContent = 'Connected: ' + userAddress.slice(0,6) + '...' + userAddress.slice(-4);
         document.getElementById('spinBtn').disabled = false;
-        document.getElementById('betBtn').disabled = false;
         document.getElementById('spinResult').textContent = '';
       } catch (err) {
         alert('Connection failed: ' + err.message);
@@ -191,23 +140,18 @@
     }
   }
 
-  // Placeholder bet button function - update as needed
-  function placeBet() {
-    currentBet = (currentBet === 1) ? 5 : 1; // toggles between 1 and 5 SOBX for example
-    document.getElementById('betBtn').textContent = `Bet ${currentBet} SOBX`;
-  }
-
   async function spin() {
     if (!userAddress) {
       alert('Connect wallet first!');
       return;
     }
 
-    const reels = document.querySelectorAll('.reel span');
-    const spinResult = document.getElementById('spinResult');
-    spinResult.textContent = 'Spinning...';
+    const bet = document.getElementById('betAmount').value;
 
-    // Start quick spinning animation by cycling symbols fast
+    const reels = document.querySelectorAll('.reel span');
+    document.getElementById('spinResult').textContent = 'Spinning...';
+
+    // Quick spinning animation by cycling symbols fast
     let spinCount = 0;
     const spinMax = 20;
     const spinInterval = setInterval(() => {
@@ -219,22 +163,20 @@
       if (spinCount >= spinMax) clearInterval(spinInterval);
     }, 100);
 
+    // Call backend spin endpoint with user and bet amount
     try {
-      // Call backend spin endpoint
       const response = await fetch('/api/spin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: userAddress, bet: currentBet })
+        body: JSON.stringify({ user: userAddress, betAmount: bet })
       });
 
       if (!response.ok) throw new Error('Server error ' + response.status);
 
       const data = await response.json();
 
-      // Wait for animation to finish
       await new Promise(resolve => setTimeout(resolve, spinMax * 100));
 
-      // Map backend results to emojis
       const emojiMap = {
         cherry: '🍒',
         lemon: '🍋',
@@ -248,14 +190,17 @@
         reels[i].style.animation = 'spinAnim 0.6s ease-in-out forwards';
       });
 
-      // Check for win - all 3 match
-      const allMatch = data.result.every(s => s === data.result[0]);
-      if (allMatch) {
-        spinResult.textContent = `You win! Three ${data.result[0]}s!`;
-        launchConfetti();
-      } else {
-        spinResult.textContent = 'Spin complete! Better luck next time.';
-      }
+      document.getElementById('spinResult').textContent = `Spin complete! You bet ${bet} SOBX. Good luck!`;
 
     } catch (err) {
-      spinResult.text
+      document.getElementById('spinResult').textContent = '';
+      alert('Spin failed: ' + err.message);
+    }
+  }
+
+  document.getElementById('connectBtn').onclick = connectWallet;
+  document.getElementById('spinBtn').onclick = spin;
+</script>
+
+</body>
+</html>
