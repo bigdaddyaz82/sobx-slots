@@ -287,6 +287,27 @@
   function spin() {
     const wallet = document.getElementById('wallet').value.trim();
     const walletMessage = document.getElementById('walletMessage');
+    const resultDiv = document.getElementById('result');
     walletMessage.textContent = '';
+    resultDiv.textContent = '';
+
     if (!wallet) {
-      walletMessage.text
+      walletMessage.textContent = 'Please enter your wallet address.';
+      walletMessage.style.color = '#f44336';
+      return;
+    }
+
+    // Generate 3 random symbols
+    const finalResult = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
+
+    animateSpin(finalResult);
+
+    // After animation ends (approx 2 seconds), evaluate result
+    setTimeout(() => {
+      // Count matches
+      const [a, b, c] = finalResult;
+      let message = '';
+      let payout = 0;
+      let baseWin = selectedBet * (multiplierActive ? 2 : 1);
+
+      if (a === b && b === c)
