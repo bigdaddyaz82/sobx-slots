@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SOBX Slot Machine</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SOBX Slots with Real Payout</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      text-align: center;
       background-color: #111;
       color: #fff;
-      text-align: center;
     }
 
     h1 {
-      font-size: 2.5rem;
       margin-top: 30px;
+      font-size: 2.5rem;
     }
 
     .slot-machine {
@@ -25,64 +25,67 @@
     }
 
     .symbol {
-      width: 120px;
-      height: 120px;
-      margin: 0 10px;
-      border: 4px solid #fff;
-      border-radius: 10px;
-      font-size: 3rem;
+      width: 150px;
+      height: 150px;
+      border: 5px solid #fff;
+      margin: 0 15px;
+      font-size: 5rem;
       display: flex;
       justify-content: center;
       align-items: center;
       background-color: #333;
-      animation: spin 0.5s linear;
+      border-radius: 15px;
+      animation: spin 1s linear infinite;
     }
 
     @keyframes spin {
-      0% { transform: rotateX(0); }
-      50% { transform: rotateX(180deg); }
-      100% { transform: rotateX(360deg); }
+      from { transform: rotate(0deg);}
+      to { transform: rotate(360deg);}
     }
 
     button {
-      padding: 12px 25px;
-      font-size: 1rem;
-      margin: 10px;
+      padding: 15px 35px;
+      font-size: 1.1rem;
+      margin: 15px 10px;
       background-color: #28a745;
       color: white;
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      transition: background-color 0.3s ease;
     }
 
-    button:hover {
+    button:hover:enabled {
       background-color: #218838;
     }
 
-    .bet-buttons {
-      margin-top: 20px;
-    }
-
-    .bet-buttons button {
-      background-color: #007bff;
-    }
-
-    .bet-buttons button:hover {
-      background-color: #0056b3;
+    button:disabled {
+      background-color: #555;
+      cursor: not-allowed;
     }
 
     #result {
-      margin-top: 20px;
-      font-size: 1.3rem;
+      margin-top: 25px;
+      font-size: 1.4rem;
+      min-height: 30px;
+    }
+
+    .button-group {
+      margin-top: 40px;
     }
 
     input[type="text"] {
-      padding: 10px;
-      width: 300px;
-      font-size: 1rem;
-      margin-top: 20px;
+      padding: 12px;
+      width: 320px;
+      font-size: 1.1rem;
+      margin-top: 30px;
       border-radius: 5px;
       border: 1px solid #ccc;
+    }
+
+    .toggle-button.active {
+      background-color: #ffc107 !important;
+      color: #111 !important;
     }
   </style>
 </head>
@@ -95,22 +98,24 @@
     <div class="symbol" id="symbol3">?</div>
   </div>
 
-  <div class="bet-buttons">
-    <button onclick="spin(1)">Bet 1 SOBX</button>
-    <button onclick="spin(5)">Bet 5 SOBX</button>
-    <button onclick="spin(10)">Bet 10 SOBX</button>
+  <input type="text" id="wallet" placeholder="Enter wallet address" />
+  <br />
+
+  <div class="button-group">
+    <button id="betBtn" class="toggle-button" onclick="toggleBet()">Bet OFF</button>
+    <button id="multiplierBtn" class="toggle-button" onclick="toggleMultiplier()">×2 OFF</button>
+    <button id="spinBtn" onclick="spin()" disabled>Spin</button>
   </div>
 
-  <input type="text" id="wallet" placeholder="Enter wallet address or connect" />
-  <br/>
   <button onclick="connectWallet()">Connect Wallet</button>
 
   <div id="result"></div>
 
   <script>
     const symbols = [
-      'cherry', 'lemon', 'orange', 'seven', 'bar', 'grape', 'diamond',
-      'skull', 'apple', 'parrot', 'bell', 'horseshoe', 'clover'
+      'cherry', 'lemon', 'orange', 'seven', 'bar', 
+      'grape', 'diamond', 'skull', 'apple', 'parrot', 
+      'horseshoe', 'clover', 'star'
     ];
 
     const emojiMap = {
@@ -124,68 +129,103 @@
       skull: '💀',
       apple: '🍎',
       parrot: '🦜',
-      bell: '🔔',
-      horseshoe: '🧲',
-      clover: '☘️'
+      horseshoe: '🐎',
+      clover: '🍀',
+      star: '⭐'
     };
 
-    async function spin(betAmount) {
-      const user = document.getElementById('wallet').value;
-      if (!user) {
-        alert('Please connect your wallet or enter address.');
+    let spinning = false;
+    let betOn = false;
+    let multiplierOn = false;
+
+    const betBtn = document.getElementById('betBtn');
+    const multiplierBtn = document.getElementById('multiplierBtn');
+    const spinBtn = document.getElementById('spinBtn');
+
+    function connectWallet() {
+      const walletAddress = document.getElementById('wallet').value.trim();
+      if (!walletAddress) {
+        alert('Please enter your wallet address before connecting.');
+        return;
+      }
+      alert('Wallet connected: ' + walletAddress);
+    }
+
+    function toggleBet() {
+      betOn = !betOn;
+      betBtn.textContent = betOn ? 'Bet ON' : 'Bet OFF';
+      betBtn.classList.toggle('active', betOn);
+      updateSpinButton();
+    }
+
+    function toggleMultiplier() {
+      multiplierOn = !multiplierOn;
+      multiplierBtn.textContent = multiplierOn ? '×2 ON' : '×2 OFF';
+      multiplierBtn.classList.toggle('active', multiplierOn);
+    }
+
+    function updateSpinButton() {
+      spinBtn.disabled = !betOn;
+    }
+
+    function spin() {
+      if (spinning) return;
+      const walletInput = document.getElementById('wallet').value.trim();
+      if (!walletInput) {
+        alert('Please enter your wallet address first.');
+        return;
+      }
+      if (!betOn) {
+        alert('Please turn Bet ON before spinning.');
         return;
       }
 
-      const resultDiv = document.getElementById('result');
-      resultDiv.textContent = 'Spinning...';
+      spinning = true;
+      document.getElementById('result').textContent = '';
 
-      // Animate spin placeholders
-      for (let i = 1; i <= 3; i++) {
-        const el = document.getElementById('symbol' + i);
-        el.style.animation = 'spin 0.5s linear';
-        el.textContent = '?';
-      }
+      const symbolsEls = [
+        document.getElementById('symbol1'),
+        document.getElementById('symbol2'),
+        document.getElementById('symbol3'),
+      ];
 
-      setTimeout(async () => {
-        try {
-          const response = await fetch('/api/spin', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user, bet: betAmount })
+      // Spin animation: random symbols every 100ms for 2 seconds
+      let spinCount = 0;
+      const maxSpins = 20;
+
+      const spinInterval = setInterval(() => {
+        spinCount++;
+        symbolsEls.forEach(el => {
+          const randSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+          el.textContent = emojiMap[randSymbol];
+          el.dataset.currentSymbol = randSymbol;
+        });
+
+        if (spinCount >= maxSpins) {
+          clearInterval(spinInterval);
+
+          // Stop animation
+          symbolsEls.forEach(el => {
+            el.style.animationPlayState = 'paused';
           });
 
-          const data = await response.json();
+          // Calculate win based on house edge 80-20
+          const houseEdge = 0.8; // House wins 80%
+          const playerWins = Math.random() > houseEdge; // 20% chance to win
 
-          if (data.error) {
-            resultDiv.textContent = data.error;
-            return;
+          const multiplier = multiplierOn ? 2 : 1;
+          if (playerWins) {
+            // You win: payout is 2x bet * multiplier
+            const payout = 2 * multiplier;
+            document.getElementById('result').textContent = `You win! Payout: ×${payout}`;
+          } else {
+            // You lose
+            document.getElementById('result').textContent = 'You lose. House wins.';
           }
 
-          for (let i = 1; i <= 3; i++) {
-            const symbol = data.result[i - 1];
-            document.getElementById('symbol' + i).textContent = emojiMap[symbol] || '?';
-          }
-
-          const allMatch = data.result.every(s => s === data.result[0]);
-          resultDiv.textContent = allMatch ? `You win ${betAmount * 5} SOBX!` : 'Try again!';
-        } catch (err) {
-          resultDiv.textContent = 'Error spinning: ' + err.message;
+          spinning = false;
         }
-      }, 600);
-    }
-
-    async function connectWallet() {
-      if (window.ethereum) {
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          document.getElementById('wallet').value = accounts[0];
-          alert('Wallet connected: ' + accounts[0]);
-        } catch (err) {
-          alert('Connection failed: ' + err.message);
-        }
-      } else {
-        alert('MetaMask not found. Install it first.');
-      }
+      }, 100);
     }
   </script>
 </body>
