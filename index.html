@@ -133,7 +133,7 @@
 
 <div id="result"></div>
 
-<button id="musicToggle" onclick="toggleMusic()">Toggle Music</button>
+<button id="musicToggle" onclick="toggleMusic()">Music: Off</button>
 
 <audio id="backgroundMusic" loop src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_713a2f2541.mp3?filename=ambient-music-11024.mp3" preload="auto"></audio>
 <audio id="spinSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_59b3dff924.mp3?filename=casino-slot-machine-4614.mp3" preload="auto"></audio>
@@ -168,14 +168,14 @@
 
   function selectBet(amount) {
     selectedBet = amount;
-    // Keep multiplier as is — do NOT clear or deselect multiplier here
-    
-    // Remove selection from all bet buttons
+    // Keep multiplier active if it is
+
+    // Remove selected class from all bet buttons
     document.getElementById('bet1Btn').classList.remove('selected');
     document.getElementById('bet5Btn').classList.remove('selected');
     document.getElementById('bet10Btn').classList.remove('selected');
 
-    // Add selection to the chosen bet button
+    // Add selected to current bet
     document.getElementById('bet' + amount + 'Btn').classList.add('selected');
   }
 
@@ -256,43 +256,7 @@
 
       if (allMatch) {
         baseWin = selectedBet * 10; // Big win for 3 matches
-      } else if (twoMatch) {
-        baseWin = selectedBet * 2;  // Smaller win for 2 matches
       }
-
-      if (multiplierActive) {
-        baseWin *= 2;
-      }
-
-      if (baseWin > 0) {
-        winSound.currentTime = 0;
-        winSound.play();
-        document.getElementById('result').textContent = `You won ${baseWin} tokens!`;
-      } else {
-        loseSound.currentTime = 0;
-        loseSound.play();
-        document.getElementById('result').textContent = 'No win, try again!';
-      }
-    }, 3000); // wait for animation to finish
-  }
-
-  function toggleMusic() {
-    const music = document.getElementById('backgroundMusic');
-    const toggleBtn = document.getElementById('musicToggle');
-    if (music.paused) {
-      music.play();
-      toggleBtn.textContent = 'Pause Music';
-    } else {
-      music.pause();
-      toggleBtn.textContent = 'Play Music';
-    }
-  }
-</script>
-
-<footer>
-  SOBX Slots - Developed by You. &nbsp; <a href="mailto:youremail@example.com">Contact</a>
+      <footer>
+  Created by <strong>Big Daddy AZ82</strong>. Sponsored by <a href="https://www.facebook.com/ReynoldsPaintingandResurfacingLLC" target="_blank" rel="noopener noreferrer">Reynolds Painting and Resurfacing LLC</a>.
 </footer>
-  Created by <strong>BigDaddyAZ82</strong>. Sponsored by <a href="https://www.facebook.com/ReynoldsPaintingandResurfacingLLC" target="_blank" rel="noopener noreferrer">Reynolds Painting and Resurfacing LLC</a>.
-</footer>
-</body>
-</html>
