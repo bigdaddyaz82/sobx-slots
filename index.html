@@ -193,20 +193,26 @@
   }
 
   function connectWallet() {
-    const walletInput = document.getElementById('wallet');
-    if (window.ethereum) {
-      window.ethereum.request({ method: 'eth_requestAccounts' })
-      .then(accounts => {
-        walletInput.value = accounts[0];
-        document.getElementById('walletStatus').textContent = 'Wallet connected: ' + accounts[0];
-      })
-      .catch(err => {
-        document.getElementById('walletStatus').textContent = 'Wallet connection failed: ' + err.message;
-      });
-    } else {
-      alert('MetaMask or Ethereum wallet not detected.');
-    }
+  const walletInput = document.getElementById('wallet');
+  const resultDiv = document.getElementById('result');
+
+  if (window.ethereum) {
+    window.ethereum.request({ method: 'eth_requestAccounts' })
+    .then(accounts => {
+      walletInput.value = accounts[0];
+      resultDiv.textContent = 'Wallet connected: ' + accounts[0];
+      resultDiv.style.color = '#28a745';
+    })
+    .catch(err => {
+      resultDiv.textContent = 'Wallet connection failed: ' + err.message;
+      resultDiv.style.color = '#dc3545';
+    });
+  } else {
+    resultDiv.textContent = 'MetaMask or Ethereum wallet not detected.';
+    resultDiv.style.color = '#dc3545';
   }
+  }
+  
 
   function getRandomSymbol() {
     return symbols[Math.floor(Math.random() * symbols.length)];
