@@ -228,37 +228,82 @@
     }
   }
 
-  // Helper to check if today is Saturday or Sunday for double win weekend
   function isDoubleWinWeekend() {
     const today = new Date().getDay();
-    // 0 = Sunday, 6 = Saturday
     return today === 0 || today === 6;
   }
 
-  // Daily bonus management
-  function checkDailyBonus() {
-    const dailyBonusElem = document.getElementById('dailyBonus');
-    const lastClaim = localStorage.getItem('sobxSlotsDailyBonusTimestamp');
-    const now = Date.now();
-    const oneDay = 24 * 60 * 60 * 1000;
+  function spin() {
+    const wallet = document.getElementById('wallet').value.trim();
+    if (!wallet) {
+      alert('Please enter or connect your wallet address first.');
+      return;
+    }
 
-    if (lastClaim && now - lastClaim < oneDay) {
-      const remainingMs = oneDay - (now - lastClaim);
-      const hours = Math.floor(remainingMs / (60*60*1000));
-      const minutes = Math.floor((remainingMs % (60*60*1000)) / (60*1000));
-      dailyBonusElem.textContent = `Daily bonus claimed! Next bonus in ${hours}h ${minutes}m`;
-      return false;
+    const spinSound = document.getElementById('spinSound');
+    const winSound = document.getElementById('winSound');
+    const loseSound = document.getElementById('loseSound');
+
+    spinSound.currentTime = 0;
+    spinSound.play();
+
+    // Generate three random symbols
+    let resultSymbols = [];
+    for(let i=0; i<3; i++) {
+      resultSymbols.push(getRandomSymbol());
+    }
+
+    animateSpin(resultSymbols);
+
+    setTimeout(() => {
+      // Determine if player won: all three symbols match
+      const allMatch = resultSymbols.every(s => s === resultSymbols[0]);
+
+      let baseWin = 0;
+      if (allMatch) {
+        // Simple payout based on symbol rarity or fixed value
+        switch(resultSymbols[0]) {
+          case 'seven': baseWin = 100; break;
+          case 'diamond': baseWin = 75; break;
+          case 'bar': baseWin = 50; break;
+          case 'cherry': baseWin = 25; break;
+          default: baseWin = 10;
+        }
+      }
+
+      // Apply bet and multiplier
+      let totalWin = baseWin * selectedBet;
+      if(multiplierActive) totalWin *= 2;
+
+      const resultText = allMatch
+        ? `You won ${totalWin} SOBX tokens!`
+        : 'No win, try again!';
+
+      document.getElementById('result').textContent = resultText;
+
+      if(allMatch) {
+        winSound.play();
+      } else {
+        loseSound.play();
+      }
+    }, 3500);
+  }
+
+  function toggleMusic() {
+    const music = document.getElementById('backgroundMusic');
+    const btn = document.getElementById('musicToggle');
+    if(music.paused) {
+      music.play();
+      btn.textContent = 'Music: On';
     } else {
-      dailyBonusElem.textContent = `Daily bonus available! Click "Spin" to claim 50 bonus points.`;
-      return true;
+      music.pause();
+      btn.textContent = 'Music: Off';
     }
   }
 
-  function claimDailyBonus() {
-    const dailyBonusAvailable = checkDailyBonus();
-    if (dailyBonusAvailable) {
-      const currentPoints = parseInt(localStorage.getItem('sobxSlotsPoints') || '0');
-      const bonus = 50;
-      localStorage.setItem('sobxSlotsPoints', currentPoints + bonus);
-      localStorage.setItem('sobxSlotsDailyBonusTimestamp', Date.now());
-      document.getElementById('result').textContent = `You claimed your daily bonus of ${bonus} points!
+  function checkDailyBonus() {
+    const bonusDiv = document.getElementById('dailyBonus');
+    const lastBonus = localStorage.getItem('lastDailyBonus');
+    const now = Date.now();
+
+    if(lastBonus && now - lastBonus <
