@@ -1,70 +1,26 @@
-// Load environment variables from .env file (make sure you have this file locally and it's in your .gitignore)
-require('dotenv').config();
+// Example JavaScript for spin button click
+document.getElementById('spinButton').addEventListener('click', async () => {
+  // Get bet amount from your bet buttons (e.g. 1, 5, or 10 Sobex)
+  const betAmount = getSelectedBetAmount(); // You'll need to implement this part
 
-// Access your secret API key safely from environment variables
-const apiKey = process.env.API_KEY;
+  try {
+    const response = await fetch('https://your-backend-url/api/spin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ bet: betAmount }),
+    });
 
-// --- Slot Machine Setup ---
+    if (!response.ok) throw new Error('Spin failed');
 
-// Minimum bet and maximum bet options
-const BET_OPTIONS = [1, 5, 10];
+    const data = await response.json();
+    // data will have spin result info from backend
 
-// Possible slot symbols
-const SLOT_SYMBOLS = ['7', '8-ball', 'cherry', 'bar', 'bell', 'lemon'];
+    updateUIWithSpinResult(data); // Implement this to show spin wheels, winnings, balances, etc.
 
-// Function to simulate spinning the slot machine wheels
-function spinSlots() {
-  let result = [];
-  for (let i = 0; i < 3; i++) {
-    const randomIndex = Math.floor(Math.random() * SLOT_SYMBOLS.length);
-    result.push(SLOT_SYMBOLS[randomIndex]);
+  } catch (error) {
+    console.error('Error spinning:', error);
+    alert('Something went wrong, try again later.');
   }
-  return result;
-}
-
-// Function to calculate payout based on spin result and bet amount
-function calculatePayout(spinResult, betAmount) {
-  // Big win: all three symbols match
-  if (spinResult[0] === spinResult[1] && spinResult[1] === spinResult[2]) {
-    if (spinResult[0] === '7') {
-      return betAmount * 100; // Jackpot for 7-7-7
-    } else if (spinResult[0] === '8-ball') {
-      return betAmount * 50;
-    } else {
-      return betAmount * 10;
-    }
-  }
-
-  // Small win: any two symbols match
-  if (
-    spinResult[0] === spinResult[1] ||
-    spinResult[1] === spinResult[2] ||
-    spinResult[0] === spinResult[2]
-  ) {
-    return betAmount * 2;
-  }
-
-  // No win
-  return 0;
-}
-
-// Function to play the slot machine, with bet validation
-function playSlot(betAmount) {
-  if (!BET_OPTIONS.includes(betAmount)) {
-    throw new Error('Invalid bet amount');
-  }
-
-  const spinResult = spinSlots();
-  const payout = calculatePayout(spinResult, betAmount);
-
-  return {
-    spinResult,
-    payout,
-  };
-}
-
-// Export the playSlot function and bet options
-module.exports = {
-  playSlot,
-  BET_OPTIONS,
-};
+});
