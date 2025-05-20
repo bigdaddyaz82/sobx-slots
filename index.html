@@ -108,14 +108,14 @@
 
 <h1>SOBX Slot Machine</h1>
 
-<!-- Moved wallet input and connect button directly under title -->
+<!-- Wallet input and connect button -->
 <div>
   <input type="text" id="wallet" placeholder="Enter your wallet address" autocomplete="off" />
   <br />
   <button onclick="connectWallet()">Connect Wallet</button>
 </div>
 
-<!-- Moved slot machine wheels below wallet connect -->
+<!-- Slot machine wheels -->
 <div class="slot-machine">
   <div class="symbol" id="symbol1">?</div>
   <div class="symbol" id="symbol2">?</div>
@@ -134,6 +134,7 @@
 </div>
 
 <div id="result"></div>
+<div id="dailyBonus" style="margin-top: 15px; font-size: 1.1rem; color: #ffc107;"></div>
 
 <button id="musicToggle" onclick="toggleMusic()">Music: Off</button>
 
@@ -166,6 +167,7 @@
 
   window.onload = () => {
     selectBet(selectedBet);
+    checkDailyBonus();
   };
 
   function selectBet(amount) {
@@ -226,6 +228,13 @@
     }
   }
 
+  // Helper to check if today is Saturday or Sunday for double win weekend
+  function isDoubleWinWeekend() {
+    const today = new Date().getDay();
+    // 0 = Sunday, 6 = Saturday
+    return today === 0 || today === 6;
+  }
+
   function spin() {
     const wallet = document.getElementById('wallet').value.trim();
     if (!wallet) {
@@ -233,61 +242,4 @@
       return;
     }
 
-    const spinSound = document.getElementById('spinSound');
-    const winSound = document.getElementById('winSound');
-    const loseSound = document.getElementById('loseSound');
-
-    spinSound.currentTime = 0;
-    spinSound.play();
-
-    const finalResult = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
-
-    animateSpin(finalResult);
-
-    setTimeout(() => {
-      spinSound.pause();
-
-      const allMatch = finalResult[0] === finalResult[1] && finalResult[1] === finalResult[2];
-      const twoMatch = finalResult[0] === finalResult[1] || finalResult[1] === finalResult[2] || finalResult[0] === finalResult[2];
-
-      let baseWin = 0;
-
-      if (allMatch) {
-        baseWin = selectedBet * 10;
-      } else if (twoMatch) {
-        baseWin = selectedBet * 2;
-      }
-
-      if (multiplierActive) baseWin *= 2;
-
-      if (baseWin > 0) {
-        winSound.currentTime = 0;
-        winSound.play();
-        document.getElementById('result').textContent = `You won ${baseWin} SOBX!`;
-      } else {
-        loseSound.currentTime = 0;
-        loseSound.play();
-        document.getElementById('result').textContent = `You lost ${selectedBet} SOBX. Try again!`;
-      }
-    }, 3500);
-  }
-
-  function toggleMusic() {
-    const music = document.getElementById('backgroundMusic');
-    const btn = document.getElementById('musicToggle');
-    if (music.paused) {
-      music.play();
-      btn.textContent = 'Music: On';
-    } else {
-      music.pause();
-      btn.textContent = 'Music: Off';
-    }
-  }
-</script>
-
-<footer>
-  SOBX Slots &mdash; Created by BigDaddyAZ82  Sponsored By Reynolds Painting & Resurfacing LLC Painting perfection one surface at a time</a>
-</footer>
-
-</body>
-</html>
+    const spinSound = document
