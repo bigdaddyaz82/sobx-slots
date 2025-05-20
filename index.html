@@ -178,11 +178,11 @@
     }, 100);
 
     try {
-      const response = await fetch('/api/spin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: userAddress, betAmount: bet })
-      });
+     const response = await fetch('/api/spin', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ user: 'test-user' })  
+});
 
       if (!response.ok) throw new Error('Server error ' + response.status);
 
