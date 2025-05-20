@@ -1,0 +1,28 @@
+document.getElementById('spinButton').addEventListener('click', async () => {
+  const betAmount = getSelectedBetAmount(); // implement your UI logic for this
+
+  if (betAmount < 1) {
+    alert('Select a valid bet amount!');
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:3000/api/spin', { // Change to your backend URL
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bet: betAmount }),
+    });
+
+    if (!response.ok) throw new Error('Spin failed');
+
+    const data = await response.json();
+
+    // Update UI with spin result
+    document.getElementById('spinResult').textContent = data.spinResult.join(' | ');
+    document.getElementById('message').textContent = data.message;
+    document.getElementById('balance').textContent = `Balance: ${data.balance} SOBEX`;
+
+  } catch (error) {
+    alert('Error spinning: ' + error.message);
+  }
+});
