@@ -7,6 +7,6 @@ services:
   plan: free
   region: oregon
   buildCommand: yarn install
-  startCommand: node back.js
+  startCommand: server.js
   autoDeployTrigger: commit
 version: "1"
