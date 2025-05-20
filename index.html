@@ -78,6 +78,7 @@
     margin-top: 30px;
     border-radius: 5px;
     border: 1px solid #ccc;
+    text-align: center;
   }
   #musicToggle {
     margin-top: 15px;
@@ -248,4 +249,49 @@
     const winSound = document.getElementById('winSound');
     const loseSound = document.getElementById('loseSound');
 
-    spinSound.currentTime =
+    spinSound.currentTime = 0;
+    spinSound.play();
+
+    // Generate final symbols
+    const finalResult = [];
+    for(let i=0; i<3; i++) {
+      finalResult.push(getRandomSymbol());
+    }
+
+    animateSpin(finalResult);
+
+    setTimeout(() => {
+      const isWin = finalResult[0] === finalResult[1] && finalResult[1] === finalResult[2];
+      let winnings = 0;
+      if(isWin){
+        winnings = selectedBet * (multiplierActive ? 2 : 1) * 10; // win multiplier 10x
+        document.getElementById('result').textContent = `You won ${winnings} SOBX! 🎉`;
+        winSound.currentTime = 0;
+        winSound.play();
+      } else {
+        document.getElementById('result').textContent = 'Try again!';
+        loseSound.currentTime = 0;
+        loseSound.play();
+      }
+    }, 3200);
+  }
+
+  function toggleMusic() {
+    const music = document.getElementById('backgroundMusic');
+    const toggleBtn = document.getElementById('musicToggle');
+    if(music.paused){
+      music.play();
+      toggleBtn.textContent = 'Pause Music';
+    } else {
+      music.pause();
+      toggleBtn.textContent = 'Play Music';
+    }
+  }
+</script>
+
+<footer>
+  SOBX Slots &copy; 2025 - Built by Reynolds Painting & Resurfacing LLC - <a href="mailto:azreynoldspaintingllc@gmail.com">Contact</a>
+</footer>
+
+</body>
+</html>
