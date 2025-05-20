@@ -1,161 +1,61 @@
-document.getElementById('spinButton').addEventListener('click', async () => {
-  const betAmount = getSelectedBetAmount(); // implement your UI logic for this
+<script>
+const sobexTokenAddress = "0x99c76e2311ebe008c59226b826c2b96e39e9428b";
+const sobexAbi = [
+  "function transfer(address to, uint256 amount) public returns (bool)",
+  "function decimals() view returns (uint8)"
+];
 
-  if (betAmount < 1) {
-    alert('Select a valid bet amount!');
+let provider, signer, userAddress;
+
+// Connect Wallet
+document.getElementById("connectWallet").onclick = async () => {
+  if (window.ethereum) {
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    userAddress = await signer.getAddress();
+    document.getElementById("walletAddress").innerText = `Connected: ${userAddress}`;
+  } else {
+    alert("MetaMask not detected!");
+  }
+};
+
+// Spin Button Logic
+document.getElementById("spinButton").addEventListener("click", async () => {
+  if (!userAddress) {
+    alert("Connect your wallet first!");
     return;
   }
 
   try {
-    const response = await fetch('http://localhost:3000/api/spin', { // Change to your backend URL
+    const response = await fetch('/api/spin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bet: betAmount }),
+      body: JSON.stringify({ user: userAddress }) // Sending user wallet to backend
     });
 
-    if (!response.ok) throw new Error('Spin failed');
+    if (!response.ok) throw new Error("Spin failed!");
 
     const data = await response.json();
 
-    // Update UI with spin result
-    document.getElementById('spinResult').textContent = data.spinResult.join(' | ');
-    document.getElementById('message').textContent = data.message;
-    document.getElementById('balance').textContent = `Balance: ${data.balance} SOBEX`;
+    document.getElementById("spinResult").textContent = data.result.join(" | ");
+
+    const isWin = data.result[0] === data.result[1] && data.result[1] === data.result[2];
+    if (isWin) {
+      const sobexContract = new ethers.Contract(sobexTokenAddress, sobexAbi, signer);
+      const decimals = await sobexContract.decimals();
+      const rewardAmount = ethers.utils.parseUnits("10", decimals);
+
+      const tx = await sobexContract.transfer(userAddress, rewardAmount);
+      await tx.wait();
+      alert("Congrats! You won 10 SOBEX!");
+    } else {
+      alert("No match. Try again!");
+    }
 
   } catch (error) {
-    alert('Error spinning: ' + error.message);
+    console.error(error);
+    alert("Spin error: " + error.message);
   }
 });
-const sobexTokenAddress = "0x99c76e2311ebe008c59226b826c2b96e39e9428b";
-const sobexAbi = [
-  "function transfer(address to, uint256 amount) public returns (bool)",
-  "function decimals() view returns (uint8)"
-];
-
-let provider, signer, userAddress;
-
-document.getElementById("connectWallet").onclick = async () => {
-  if (window.ethereum) {
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    signer = provider.getSigner();
-    userAddress = await signer.getAddress();
-    document.getElementById("walletAddress").innerText = `Connected: ${userAddress}`;
-  } else {
-    alert("MetaMask not detected!");
-  }
-};
-
-document.getElementById("spinButton").onclick = async () => {
-  if (!signer) {
-    alert("Connect your wallet first!");
-    return;
-  }
-
-  const spinWin = Math.random() < 0.3; // 30% chance to win
-  document.getElementById("spinResult").innerText = spinWin ? "You won!" : "You lost. Try again!";
-
-  if (spinWin) {
-    const sobexContract = new ethers.Contract(sobexTokenAddress, sobexAbi, signer);
-    const decimals = await sobexContract.decimals();
-    const amount = ethers.utils.parseUnits("10", decimals); // Send 10 SOBEX
-
-    try {
-      const tx = await sobexContract.transfer(userAddress, amount);
-      await tx.wait();
-      alert(`Success! 10 SOBEX sent to ${userAddress}`);
-    } catch (err) {
-      console.error(err);
-      alert("Transfer failed.");
-    }
-  }
-};const sobexTokenAddress = "0x99c76e2311ebe008c59226b826c2b96e39e9428b";
-const sobexAbi = [
-  "function transfer(address to, uint256 amount) public returns (bool)",
-  "function decimals() view returns (uint8)"
-];
-
-let provider, signer, userAddress;
-
-document.getElementById("connectWallet").onclick = async () => {
-  if (window.ethereum) {
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    signer = provider.getSigner();
-    userAddress = await signer.getAddress();
-    document.getElementById("walletAddress").innerText = `Connected: ${userAddress}`;
-  } else {
-    alert("MetaMask not detected!");
-  }
-};
-
-document.getElementById("spinButton").onclick = async () => {
-  if (!signer) {
-    alert("Connect your wallet first!");
-    return;
-  }
-
-  const spinWin = Math.random() < 0.3; // 30% chance to win
-  document.getElementById("spinResult").innerText = spinWin ? "You won!" : "You lost. Try again!";
-
-  if (spinWin) {
-    const sobexContract = new ethers.Contract(sobexTokenAddress, sobexAbi, signer);
-    const decimals = await sobexContract.decimals();
-    const amount = ethers.utils.parseUnits("10", decimals); // Send 10 SOBEX
-
-    try {
-      const tx = await sobexContract.transfer(userAddress, amount);
-      await tx.wait();
-      alert(`Success! 10 SOBEX sent to ${userAddress}`);
-    } catch (err) {
-      console.error(err);
-      alert("Transfer failed.");
-    }// your existing game code (spin logic, etc.)
-
-// === SOBEX Spin-to-Win Code Starts Here ===
-const sobexTokenAddress = "0x99c76e2311ebe008c59226b826c2b96e39e9428b";
-const sobexAbi = [
-  "function transfer(address to, uint256 amount) public returns (bool)",
-  "function decimals() view returns (uint8)"
-];
-
-let provider, signer, userAddress;
-
-document.getElementById("connectWallet").onclick = async () => {
-  if (window.ethereum) {
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    signer = provider.getSigner();
-    userAddress = await signer.getAddress();
-    document.getElementById("walletAddress").innerText = `Connected: ${userAddress}`;
-  } else {
-    alert("MetaMask not detected!");
-  }
-};
-
-document.getElementById("spinButton").onclick = async () => {
-  if (!signer) {
-    alert("Connect your wallet first!");
-    return;
-  }
-
-  const spinWin = Math.random() < 0.3; // 30% win rate
-  document.getElementById("spinResult").innerText = spinWin ? "You won!" : "You lost. Try again!";
-
-  if (spinWin) {
-    const sobexContract = new ethers.Contract(sobexTokenAddress, sobexAbi, signer);
-    const decimals = await sobexContract.decimals();
-    const amount = ethers.utils.parseUnits("10", decimals); // Send 10 SOBEX
-
-    try {
-      const tx = await sobexContract.transfer(userAddress, amount);
-      await tx.wait();
-      alert(`Success! 10 SOBEX sent to ${userAddress}`);
-    } catch (err) {
-      console.error(err);
-      alert("Transfer failed.");
-    }
-  }
-};
-  }
-};
+</script>
