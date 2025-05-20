@@ -3,142 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SOBX Slot Machine</title>
+  <title>SOBX Slots</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #121212;
-      color: #eee;
-      text-align: center;
-    }
-    button {
-      margin: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    input {
-      padding: 8px;
-      font-size: 16px;
-      width: 150px;
-      text-align: center;
-    }
-    #spinResult {
-      margin-top: 20px;
-      font-size: 24px;
-      letter-spacing: 5px;
-    }
-    #message {
-      margin-top: 10px;
-      font-size: 18px;
-      color: #90ee90;
-    }
-    #balance {
-      margin-top: 10px;
-      font-size: 18px;
-      color: #ffcc00;
-    }
-    #walletAddress {
-      display: block;
-      margin-top: 15px;
-      font-size: 14px;
-      color: #aaa;
-    }
+    body { font-family: Arial, sans-serif; background: #222; color: #eee; text-align: center; padding: 2rem; }
+    button { font-size: 1.2rem; padding: 1rem 2rem; margin: 1rem; cursor: pointer; }
+    #walletAddress { margin-top: 1rem; font-weight: bold; }
+    #result { margin-top: 2rem; font-size: 1.5rem; }
   </style>
 </head>
 <body>
-  <h1>SOBX Slot Machine</h1>
+  <h1>SOBX Slots Machine</h1>
+  <button id="connectWalletBtn">Connect Wallet</button>
+  <div id="walletAddress">Wallet: Not Connected</div>
 
-  <button id="connectWallet">Connect Wallet</button>
-  <span id="walletAddress">Wallet not connected</span>
-
-  <div>
-    <input id="betAmount" type="number" placeholder="Enter bet amount" min="1" />
-    <button id="spinButton">Spin</button>
-  </div>
-
-  <div id="spinResult"></div>
-  <div id="message"></div>
-  <div id="balance"></div>
+  <button id="spinBtn" disabled>Spin the Wheel</button>
+  <div id="result"></div>
 
   <script>
-    // Paste the full front-end JS code I gave you here exactly:
-    const spinButton = document.getElementById('spinButton');
-    const connectWalletButton = document.getElementById('connectWallet');
-    const walletAddressSpan = document.getElementById('walletAddress');
-    const spinResultDiv = document.getElementById('spinResult');
-    const messageDiv = document.getElementById('message');
-    const balanceDiv = document.getElementById('balance');
-
-    let userWalletAddress = null;
+    let userAddress = null;
 
     async function connectWallet() {
-      if (!window.ethereum) {
-        alert('MetaMask not detected. Please install MetaMask!');
+      if (typeof window.ethereum === 'undefined') {
+        alert('MetaMask is not installed. Please install it to play.');
         return;
       }
 
       try {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        userWalletAddress = accounts[0];
-        walletAddressSpan.textContent = userWalletAddress;
-
-        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-        if (chainId !== '0xA4B1') {
-          alert('Please switch your MetaMask network to Base Mainnet.');
-        }
-      } catch (error) {
-        console.error('Wallet connection failed:', error);
-        alert('Wallet connection failed: ' + error.message);
+        userAddress = accounts[0];
+        document.getElementById('walletAddress').textContent = 'Wallet: ' + userAddress;
+        document.getElementById('spinBtn').disabled = false;
+      } catch (err) {
+        alert('Wallet connection failed: ' + err.message);
       }
     }
 
-    function getSelectedBetAmount() {
-      const betInput = document.getElementById('betAmount');
-      return Number(betInput.value) || 0;
-    }
-
-    spinButton.addEventListener('click', async () => {
-      const betAmount = getSelectedBetAmount();
-
-      if (betAmount < 1) {
-        alert('Select a valid bet amount!');
+    async function spinWheel() {
+      if (!userAddress) {
+        alert('Connect your wallet first!');
         return;
       }
 
-      if (!userWalletAddress) {
-        alert('Please connect your wallet first!');
-        return;
-      }
+      document.getElementById('result').textContent = 'Spinning...';
 
       try {
-        const response = await fetch('http://localhost:3000/api/spin', {
+        const response = await fetch('/spin', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bet: betAmount, wallet: userWalletAddress }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ address: userAddress }),
         });
 
-        if (!response.ok) throw new Error('Spin failed');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
 
         const data = await response.json();
 
-        spinResultDiv.textContent = data.spinResult.join(' | ');
-        messageDiv.textContent = data.message;
-        balanceDiv.textContent = `Balance: ${data.balance} SOBEX`;
+        if (data.success) {
+          document.getElementById('result').textContent = 'You won: ' + data.reward + ' SOBX!';
+        } else {
+          document.getElementById('result').textContent = 'Spin failed: ' + data.message;
+        }
       } catch (error) {
-        alert('Error spinning: ' + error.message);
+        document.getElementById('result').textContent = 'Error: ' + error.message;
       }
-    });
+    }
 
-    connectWalletButton.addEventListener('click', connectWallet);
-
-    window.ethereum?.request({ method: 'eth_accounts' }).then(accounts => {
-      if (accounts.length > 0) {
-        userWalletAddress = accounts[0];
-        walletAddressSpan.textContent = userWalletAddress;
-      }
-    });
+    document.getElementById('connectWalletBtn').addEventListener('click', connectWallet);
+    document.getElementById('spinBtn').addEventListener('click', spinWheel);
   </script>
 </body>
 </html>
