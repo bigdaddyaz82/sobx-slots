@@ -1,48 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SOBEX Slots</title>
-  <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-    #result { font-size: 3rem; margin-top: 20px; }
-    button { font-size: 1.5rem; padding: 10px 20px; }
-  </style>
-</head>
-<body>
+document.getElementById('spinButton').addEventListener('click', async () => {
+  const betAmount = getSelectedBetAmount(); // implement your UI logic for this
 
-  <h1>SOBEX Slot Machine</h1>
-  <button id="spinBtn">Spin</button>
-  <div id="result"></div>
+  if (betAmount < 1) {
+    alert('Select a valid bet amount!');
+    return;
+  }
 
-  <script>
-    const spinBtn = document.getElementById('spinBtn');
-    const resultDiv = document.getElementById('result');
-
-    spinBtn.addEventListener('click', async () => {
-      resultDiv.textContent = 'Spinning...';
-
-      try {
-        const response = await fetch('/api/spin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        });
-
-        if (!response.ok) throw new Error('Network response was not ok');
-
-        const data = await response.json();
-
-        if (data.success) {
-          resultDiv.textContent = data.result.join(' | ');
-        } else {
-          resultDiv.textContent = 'Spin failed. Try again.';
-        }
-      } catch (error) {
-        resultDiv.textContent = 'Error spinning: ' + error.message;
-      }
+  try {
+    const response = await fetch('http://localhost:3000/api/spin', { // Change to your backend URL
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bet: betAmount }),
     });
-  </script>
 
-</body>
-</html>
+    if (!response.ok) throw new Error('Spin failed');
+
+    const data = await response.json();
+
+    // Update UI with spin result
+    document.getElementById('spinResult').textContent = data.spinResult.join(' | ');
+    document.getElementById('message').textContent = data.message;
+    document.getElementById('balance').textContent = `Balance: ${data.balance} SOBEX`;
+
+  } catch (error) {
+    alert('Error spinning: ' + error.message);
+  }
+});
