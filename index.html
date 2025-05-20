@@ -97,7 +97,6 @@
   <button id="bet1Btn" onclick="selectBet(1)">Bet 1</button>
   <button id="bet5Btn" onclick="selectBet(5)">Bet 5</button>
   <button id="bet10Btn" onclick="selectBet(10)">Bet 10</button>
-  <button id="multiplierBtn" onclick="toggleMultiplier()">×2 Multiplier OFF</button>
 </div>
 
 <div>
@@ -125,7 +124,8 @@
   };
 
   let selectedBet = 1;
-  let multiplierOn = false;
+  let selectedBet = 5;
+  let selectedBet = 10;
   let spinTimeouts = [];
 
   function selectBet(amount) {
@@ -133,19 +133,7 @@
     document.getElementById('bet1Btn').classList.remove('selected');
     document.getElementById('bet5Btn').classList.remove('selected');
     document.getElementById('bet10Btn').classList.remove('selected');
-    document.getElementById('bet' + amount + 'Btn').classList.add('selected');
-  }
-
-  function toggleMultiplier() {
-    multiplierOn = !multiplierOn;
-    const btn = document.getElementById('multiplierBtn');
-    btn.textContent = multiplierOn ? '×2 Multiplier ON' : '×2 Multiplier OFF';
-    if (multiplierOn) {
-      btn.classList.add('selected');
-    } else {
-      btn.classList.remove('selected');
-    }
-  }
+    document.getElementById('bet' + amount + 'Btn').classList.add('selected'
 
   function connectWallet() {
     const walletInput = document.getElementById('wallet');
@@ -161,14 +149,10 @@
     }
   }
 
-  function getRandomSymbol() {
-    return symbols[Math.floor(Math.random() * symbols.length)];
-  }
-
-  // Spin animation for visual effect before result
+  function for visual effect before result
   function animateSpin(finalResult) {
     clearTimeouts();
-    let ticks = 15; // how many symbol changes before stop
+    let ticktick25; // how many symbol changes before stop
     for (let i = 1; i <= 3; i++) {
       spinTimeouts[i] = [];
       for (let t = 0; t < ticks; t++) {
