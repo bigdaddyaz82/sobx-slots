@@ -1,84 +1,88 @@
-// front.js
+// Full front-end JS for wallet connect + spin
 
-const connectWalletButton = document.getElementById('connectWalletButton');
-const walletAddressElement = document.getElementById('walletAddress');
-const gameDiv = document.getElementById('game');
-const betInput = document.getElementById('betInput');
 const spinButton = document.getElementById('spinButton');
-const spinResultEl = document.getElementById('spinResult');
-const payoutEl = document.getElementById('payout');
-const balanceEl = document.getElementById('balance');
-const messageEl = document.getElementById('message');
+const connectWalletButton = document.getElementById('connectWallet');
+const walletAddressSpan = document.getElementById('walletAddress');
+const spinResultDiv = document.getElementById('spinResult');
+const messageDiv = document.getElementById('message');
+const balanceDiv = document.getElementById('balance');
 
-let signer, ethersProvider, userAddress;
+let userWalletAddress = null;
 
-// Initialize Web3Modal with Coinbase Wallet provider only
-const providerOptions = {
-  coinbasewallet: {
-    package: CoinbaseWalletSDK,
-    options: {
-      appName: "SOBEX Slot Machine",
-      darkMode: false
-    }
-  }
-};
-
-const web3Modal = new window.Web3Modal.default({
-  cacheProvider: false,
-  providerOptions
-});
-
-connectWalletButton.addEventListener('click', async () => {
-  try {
-    const provider = await web3Modal.connect();
-    ethersProvider = new ethers.providers.Web3Provider(provider);
-    signer = ethersProvider.getSigner();
-    userAddress = await signer.getAddress();
-
-    walletAddressElement.textContent = `Connected wallet: ${userAddress}`;
-    connectWalletButton.textContent = 'Wallet Connected';
-    connectWalletButton.disabled = true;
-
-    gameDiv.style.display = 'block';
-    balanceEl.textContent = 'Balance: Loading...';
-
-  } catch (error) {
-    walletAddressElement.textContent = 'Wallet connection failed or cancelled.';
-    console.error(error);
-  }
-});
-
-spinButton.addEventListener('click', async () => {
-  const bet = Number(betInput.value);
-  if (!bet || bet < 1) {
-    messageEl.textContent = 'Enter a valid bet amount (1 or more).';
+// Connect MetaMask wallet on Base network
+async function connectWallet() {
+  if (!window.ethereum) {
+    alert('MetaMask not detected. Please install MetaMask!');
     return;
   }
 
-  messageEl.textContent = 'Spinning...';
+  try {
+    // Request wallet connection
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    userWalletAddress = accounts[0];
+    walletAddressSpan.textContent = userWalletAddress;
+    console.log('Connected wallet:', userWalletAddress);
+
+    // Optional: check network and alert if not Base
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    // Base Mainnet chainId = '0xA4B1'
+    if (chainId !== '0xA4B1') {
+      alert('Please switch your MetaMask network to Base Mainnet.');
+    }
+  } catch (error) {
+    console.error('Wallet connection failed:', error);
+    alert('Wallet connection failed: ' + error.message);
+  }
+}
+
+// Example function to get bet amount from UI (implement your own logic here)
+function getSelectedBetAmount() {
+  const betInput = document.getElementById('betAmount');
+  return Number(betInput.value) || 0;
+}
+
+// Spin button handler
+spinButton.addEventListener('click', async () => {
+  const betAmount = getSelectedBetAmount();
+
+  if (betAmount < 1) {
+    alert('Select a valid bet amount!');
+    return;
+  }
+
+  if (!userWalletAddress) {
+    alert('Please connect your wallet first!');
+    return;
+  }
 
   try {
-    const response = await fetch('http://localhost:3000/api/spin', {
+    const response = await fetch('http://localhost:3000/api/spin', { // Change URL if needed
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bet })
+      body: JSON.stringify({ bet: betAmount, wallet: userWalletAddress }),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      messageEl.textContent = `Error: ${errorData.error || 'Unknown error'}`;
-      return;
-    }
+    if (!response.ok) throw new Error('Spin failed');
 
     const data = await response.json();
 
-    spinResultEl.textContent = `Spin Result: ${data.spinResult.join(' | ')}`;
-    payoutEl.textContent = `Payout: ${data.payout.toFixed(2)} SOBEX`;
-    balanceEl.textContent = `Balance: ${data.balance.toFixed(2)} SOBEX`;
-    messageEl.textContent = data.message;
+    // Update UI with spin result
+    spinResultDiv.textContent = data.spinResult.join(' | ');
+    messageDiv.textContent = data.message;
+    balanceDiv.textContent = `Balance: ${data.balance} SOBEX`;
 
-  } catch (err) {
-    messageEl.textContent = 'Failed to call spin API.';
-    console.error(err);
+  } catch (error) {
+    alert('Error spinning: ' + error.message);
+  }
+});
+
+// Connect wallet button handler
+connectWalletButton.addEventListener('click', connectWallet);
+
+// Optional: automatically connect wallet if already connected
+window.ethereum?.request({ method: 'eth_accounts' }).then(accounts => {
+  if (accounts.length > 0) {
+    userWalletAddress = accounts[0];
+    walletAddressSpan.textContent = userWalletAddress;
   }
 });
