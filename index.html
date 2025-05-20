@@ -17,20 +17,37 @@
     color: #00ff99;
     text-shadow: 0 0 10px #00ff99;
   }
-  #connectBtn, #spinBtn {
-    background: #00ff99;
-    border: none;
-    color: #121212;
-    font-weight: bold;
-    padding: 15px 30px;
-    margin: 15px 10px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 1.2rem;
-    transition: background 0.3s ease;
+  #controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
   }
-  #connectBtn:hover, #spinBtn:hover {
+  button, select {
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 12px 20px;
+    transition: background 0.3s ease;
+    color: #121212;
+    background: #00ff99;
+  }
+  button:hover, select:hover {
     background: #00cc77;
+  }
+  #spinBtn {
+    background: #ff3333; /* bright red */
+    color: white;
+    font-size: 1.6rem;
+    padding: 18px 50px;
+    font-weight: 900;
+    box-shadow: 0 0 15px #ff3333;
+  }
+  #spinBtn:hover {
+    background: #cc0000;
   }
   #reels {
     margin: 40px auto;
@@ -80,8 +97,19 @@
 
 <h1>SOBX Slot Machine</h1>
 
-<button id="connectBtn">Connect Wallet</button>
-<button id="spinBtn" disabled>Spin the Wheels</button>
+<div id="controls">
+  <button id="connectBtn">Connect Wallet</button>
+
+  <select id="betAmount">
+    <option value="0.01">Bet 0.01 SOBX</option>
+    <option value="0.05">Bet 0.05 SOBX</option>
+    <option value="0.1">Bet 0.1 SOBX</option>
+    <option value="0.5">Bet 0.5 SOBX</option>
+    <option value="1">Bet 1 SOBX</option>
+  </select>
+
+  <button id="spinBtn" disabled>SPIN</button>
+</div>
 
 <div id="reels">
   <div class="reel"><span>?</span></div>
@@ -118,10 +146,12 @@
       return;
     }
 
+    const bet = document.getElementById('betAmount').value;
+
     const reels = document.querySelectorAll('.reel span');
     document.getElementById('spinResult').textContent = 'Spinning...';
 
-    // Start quick spinning animation by cycling symbols fast
+    // Quick spinning animation by cycling symbols fast
     let spinCount = 0;
     const spinMax = 20;
     const spinInterval = setInterval(() => {
@@ -133,35 +163,34 @@
       if (spinCount >= spinMax) clearInterval(spinInterval);
     }, 100);
 
-    // Call your backend spin endpoint (adjust URL if needed)
+    // Call backend spin endpoint with user and bet amount
     try {
       const response = await fetch('/api/spin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: userAddress })
+        body: JSON.stringify({ user: userAddress, betAmount: bet })
       });
 
       if (!response.ok) throw new Error('Server error ' + response.status);
 
       const data = await response.json();
 
-      // Stop animation after spinMax * 100ms
       await new Promise(resolve => setTimeout(resolve, spinMax * 100));
 
-      // Show the actual result symbols with a smooth animation
+      const emojiMap = {
+        cherry: '🍒',
+        lemon: '🍋',
+        orange: '🍊',
+        seven: '7️⃣',
+        bar: '⭐'
+      };
+
       data.result.forEach((sym, i) => {
-        const emojiMap = {
-          cherry: '🍒',
-          lemon: '🍋',
-          orange: '🍊',
-          seven: '7️⃣',
-          bar: '⭐'
-        };
         reels[i].textContent = emojiMap[sym] || sym;
         reels[i].style.animation = 'spinAnim 0.6s ease-in-out forwards';
       });
 
-      document.getElementById('spinResult').textContent = 'Spin complete! Good luck!';
+      document.getElementById('spinResult').textContent = `Spin complete! You bet ${bet} SOBX. Good luck!`;
 
     } catch (err) {
       document.getElementById('spinResult').textContent = '';
