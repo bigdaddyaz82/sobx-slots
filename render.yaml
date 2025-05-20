@@ -1,0 +1,12 @@
+# Exported from Render on 2025-05-20T06:37:21Z
+services:
+- type: web
+  name: sobx-slots
+  runtime: node
+  repo: https://github.com/bigdaddyaz82/sobx-slots
+  plan: free
+  region: oregon
+  buildCommand: yarn install
+  startCommand: node back.js
+  autoDeployTrigger: commit
+version: "1"
