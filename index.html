@@ -287,7 +287,64 @@
     }
   }
 </script>
+<script>
+  let userWallet = null;
 
+  // Connect wallet when site loads
+  window.addEventListener('load', async () => {
+    if (typeof window.ethereum !== 'undefined') {
+      try {
+        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+        userWallet = accounts[0];
+        console.log('Wallet connected:', userWallet);
+      } catch (err) {
+        console.error('Wallet connection rejected');
+      }
+    } else {
+      alert('MetaMask not found. Please install it to earn rewards.');
+    }
+  });
+
+  // Send SOBX tokens on jackpot
+  async function sendSOBXReward() {
+    const SOBX_TOKEN_ADDRESS = '0x99c76e2311ebe008c59226b826c2b96e39e9428b';
+    const SOBX_ABI = [
+      "function transfer(address to, uint amount) public returns (bool)"
+    ];
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const contract = new ethers.Contract(SOBX_TOKEN_ADDRESS, SOBX_ABI, signer);
+
+    try {
+      const tx = await contract.transfer(userWallet, ethers.utils.parseUnits("10", 18));
+      await tx.wait();
+      alert('10 SOBX sent to your wallet!');
+    } catch (err) {
+      console.error('SOBX transfer failed', err);
+      alert('Token transfer failed. Try again.');
+    }
+  }
+
+  // Modified spin function — ONLY this logic should override yours
+  function spinSlots() {
+    const reels = document.querySelectorAll('.reel img');
+    const resultText = document.getElementById('result');
+
+    const results = [];
+    reels.forEach((img, index) => {
+      const random = Math.floor(Math.random() * images.length);
+      img.src = images[random];
+      results.push(images[random]);
+    });
+
+    if (results[0] === results[1] && results[1] === results[2]) {
+      resultText.innerText = 'Jackpot! You win SOBX!';
+      sendSOBXReward();
+    } else {
+      resultText.innerText = 'Try again!';
+    }
+  }
+    </script>
 <footer>
   SOBX Slots &mdash; Created by BigDaddyAZ82  Sponsored By Reynolds Painting & Resurfacing LLC Painting perfection one surface at a time</a>
 </footer>
