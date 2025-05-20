@@ -152,11 +152,13 @@
       window.ethereum.request({ method: 'eth_requestAccounts' })
       .then(accounts => {
         walletInput.value = accounts[0];
-        alert('Wallet connected: ' + accounts[0]);
+        document.getElementById('result').textContent = 'Wallet connected: ' + accounts[0];
       })
-      .catch(err => alert('Wallet connection failed: ' + err.message));
+      .catch(err => {
+        document.getElementById('result').textContent = 'Wallet connection failed: ' + err.message;
+      });
     } else {
-      alert('MetaMask or other Ethereum wallet extension not detected.');
+      document.getElementById('result').textContent = 'MetaMask or other Ethereum wallet extension not detected.';
     }
   }
 
@@ -192,7 +194,7 @@
   function spin() {
     const wallet = document.getElementById('wallet').value.trim();
     if (!wallet) {
-      alert('Please enter or connect your wallet address first.');
+      document.getElementById('result').textContent = 'Please enter or connect your wallet address first.';
       return;
     }
 
