@@ -143,6 +143,13 @@
 <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_4f0d3f142a.mp3?filename=winning-coin-4933.mp3" preload="auto"></audio>
 <audio id="loseSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_c464aa6f30.mp3?filename=slot-machine-losing-sound-4603.mp3" preload="auto"></audio>
 
+<!-- Wallet connection status message above footer -->
+<div id="walletStatus" style="margin: 10px 0; font-size: 1.1rem; color: #0f0;"></div>
+
+<footer>
+  &copy; 2025 Reynolds Painting & Resurfacing LLC | <a href="mailto:azreynoldspaintingllc@gmail.com">Contact Us</a>
+</footer>
+
 <script>
   const symbols = ['cherry', 'lemon', 'orange', 'seven', 'bar', 'grape', 'diamond', 'skull', 'apple', 'parrot', 'horseshoe', 'clover', 'star'];
   const emojiMap = {
@@ -191,9 +198,11 @@
       window.ethereum.request({ method: 'eth_requestAccounts' })
       .then(accounts => {
         walletInput.value = accounts[0];
-        alert('Wallet connected: ' + accounts[0]);
+        document.getElementById('walletStatus').textContent = 'Wallet connected: ' + accounts[0];
       })
-      .catch(err => alert('Wallet connection failed: ' + err.message));
+      .catch(err => {
+        document.getElementById('walletStatus').textContent = 'Wallet connection failed: ' + err.message;
+      });
     } else {
       alert('MetaMask or Ethereum wallet not detected.');
     }
@@ -242,4 +251,39 @@
       return;
     }
 
-    const spinSound = document
+    const spinSound = document.getElementById('spinSound');
+    spinSound.play();
+
+    const finalResult = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
+    animateSpin(finalResult);
+
+    setTimeout(() => {
+      evaluateSpin(finalResult);
+    }, 3500);
+  }
+
+  function evaluateSpin(result) {
+    // Simple win logic: all three symbols match
+    const isWin = (result[0] === result[1] && result[1] === result[2]);
+    const resultDiv = document.getElementById('result');
+
+    if (isWin) {
+      const winSound = document.getElementById('winSound');
+      winSound.play();
+      let winnings = selectedBet * (multiplierActive ? 2 : 1);
+      resultDiv.textContent = `You win ${winnings} SOBX tokens!`;
+    } else {
+      const loseSound = document.getElementById('loseSound');
+      loseSound.play();
+      resultDiv.textContent = 'Try again!';
+    }
+  }
+
+  function checkDailyBonus() {
+    // Placeholder for daily bonus logic
+    const dailyBonusDiv = document.getElementById('dailyBonus');
+    dailyBonusDiv.textContent = 'Daily bonus available! Spin to claim.';
+  }
+
+  function toggleMusic() {
+    const music = document.getElementById('backgroundMusic');
