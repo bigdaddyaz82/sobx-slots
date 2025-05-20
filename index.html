@@ -5,18 +5,97 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>SOBEX Slot Game</title>
 <style>
-  body { font-family: Arial, sans-serif; background: #121212; color: #eee; margin: 0; padding: 0; }
-  header, footer { background: #222; padding: 1em; text-align: center; }
-  main { padding: 1em; max-width: 600px; margin: auto; }
-  .slot-machine { display: flex; justify-content: center; margin: 1em 0; }
-  .slot { width: 80px; height: 80px; margin: 0 5px; border: 3px solid #444; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 3em; background: #333; }
-  .controls { text-align: center; margin: 1em 0; }
-  button { padding: 0.6em 1.2em; font-size: 1.2em; border: none; border-radius: 6px; cursor: pointer; background: #28a745; color: white; }
-  button:disabled { background: #555; cursor: default; }
-  .message { margin: 1em 0; font-size: 1.1em; min-height: 1.2em; }
-  .balance, .wallet-address { font-weight: bold; margin-top: 0.5em; }
-  #connectBtn { background: #007bff; }
-  #disconnectBtn { background: #dc3545; margin-left: 10px; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0b2e0b;
+    color: #c1e1c1;
+    margin: 0; padding: 0;
+  }
+  header {
+    background: #1c4d1c;
+    padding: 1em;
+    text-align: center;
+    font-size: 2em;
+    font-weight: bold;
+    letter-spacing: 1.2px;
+    border-bottom: 3px solid #2ba02b;
+  }
+  main {
+    max-width: 600px;
+    margin: auto;
+    padding: 1em;
+  }
+  .wallet-section {
+    text-align: center;
+    margin-bottom: 1em;
+  }
+  button {
+    background-color: #2ba02b;
+    border: none;
+    padding: 0.7em 1.4em;
+    margin: 0 0.3em;
+    border-radius: 6px;
+    color: #e6f5e6;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover:not(:disabled) {
+    background-color: #3dc63d;
+  }
+  button:disabled {
+    background-color: #0b440b;
+    cursor: not-allowed;
+  }
+  .balance, .wallet-address {
+    margin: 0.4em 0;
+    font-weight: 600;
+    font-size: 1.1em;
+  }
+  .slot-machine {
+    display: flex;
+    justify-content: center;
+    margin: 1em 0;
+  }
+  .slot {
+    width: 90px;
+    height: 90px;
+    margin: 0 6px;
+    border: 3px solid #2ba02b;
+    border-radius: 10px;
+    font-size: 4em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #154515;
+    user-select: none;
+  }
+  .controls {
+    text-align: center;
+    margin-top: 1em;
+  }
+  .bet-buttons {
+    margin-bottom: 1em;
+  }
+  .bet-btn {
+    min-width: 80px;
+  }
+  .toggle-double {
+    margin: 1em 0;
+    font-size: 1.1em;
+  }
+  .message {
+    text-align: center;
+    margin-top: 1em;
+    min-height: 1.4em;
+    font-weight: 600;
+  }
+  footer {
+    margin-top: 3em;
+    text-align: center;
+    font-size: 0.9em;
+    color: #5a875a;
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
@@ -24,16 +103,17 @@
 <body>
 
 <header>
-  <h1>SOBEX Slot Game</h1>
-  <p>Bet your SOBEX and win big!</p>
+  SOBEX Slot Game
 </header>
 
 <main>
-  <div>
+  <div class="wallet-section">
     <button id="connectBtn">Connect Wallet</button>
     <button id="disconnectBtn" style="display:none;">Disconnect</button>
     <div class="wallet-address" id="walletAddress">Wallet: Not connected</div>
     <div class="balance">Balance: <span id="balance">0</span> SOBEX</div>
+    <button id="dailyBonusBtn" disabled>Claim Daily Bonus</button>
+    <div id="dailyBonusMessage" style="margin-top:0.5em; font-size:0.9em; color:#9fd79f;"></div>
   </div>
 
   <div class="slot-machine" id="slot-machine">
@@ -43,54 +123,36 @@
   </div>
 
   <div class="controls">
-    <label for="betAmount">Bet Amount: </label>
-    <input type="number" id="betAmount" min="1" max="1000" value="10" />
+    <div class="bet-buttons">
+      <button class="bet-btn" data-bet="1">Bet 1</button>
+      <button class="bet-btn" data-bet="5">Bet 5</button>
+      <button class="bet-btn" data-bet="10">Bet 10</button>
+    </div>
+
     <button id="spinBtn" disabled>Spin</button>
+
+    <div class="toggle-double">
+      <label>
+        <input type="checkbox" id="doubleToggle" />
+        Times 2 Weekend Winnings
+      </label>
+    </div>
   </div>
 
   <div class="message" id="message"></div>
-
-  <div class="daily-login" style="margin-top:1em;">
-    Daily Login Bonus: <button id="claimBonusBtn" disabled>Claim 25 SOBEX</button>
-  </div>
-
-  <div class="weekend-bonus" style="margin-top: 1em; font-style: italic; color: #ff0;">
-    Weekend Special: Double your winnings on Saturdays and Sundays!
-  </div>
 </main>
 
 <footer>
-  <p>Reynolds Painting and Resurfacing LLC</p>
-  <p>Painting Perfection One Surface at a Time.</p>
+  Reynolds Painting & Resurfacing LLC - Painting Perfection One Surface at a Time.
 </footer>
 
 <script>
   const symbols = ["🍎", "🍌", "🍇", "🍒", "🍉", "🥝", "🍍", "🥭", "🍑", "🍓", "🥥", "🍋", "🍊"];
-
-  // Your deployed SOBEX token contract address and minimal ABI
   const SOBEX_TOKEN_ADDRESS = "0x99c76e2311ebe008c59226b826c2b96e39e9428b";
   const SOBEX_TOKEN_ABI = [
-    {
-      "constant":true,
-      "inputs":[{"name":"_owner","type":"address"}],
-      "name":"balanceOf",
-      "outputs":[{"name":"balance","type":"uint256"}],
-      "type":"function"
-    },
-    {
-      "constant":false,
-      "inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],
-      "name":"transfer",
-      "outputs":[{"name":"","type":"bool"}],
-      "type":"function"
-    },
-    {
-      "constant":true,
-      "inputs":[],
-      "name":"decimals",
-      "outputs":[{"name":"","type":"uint8"}],
-      "type":"function"
-    }
+    { "constant":true, "inputs":[{"name":"_owner","type":"address"}], "name":"balanceOf", "outputs":[{"name":"balance","type":"uint256"}], "type":"function" },
+    { "constant":false, "inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}], "name":"transfer", "outputs":[{"name":"","type":"bool"}], "type":"function" },
+    { "constant":true, "inputs":[], "name":"decimals", "outputs":[{"name":"","type":"uint8"}], "type":"function" }
   ];
 
   let web3;
@@ -100,46 +162,54 @@
   let userBalance = 0;
   let decimals = 18;
 
+  let currentBet = 1;
+
   const connectBtn = document.getElementById("connectBtn");
   const disconnectBtn = document.getElementById("disconnectBtn");
   const walletAddressEl = document.getElementById("walletAddress");
   const balanceEl = document.getElementById("balance");
   const spinBtn = document.getElementById("spinBtn");
-  const betAmountInput = document.getElementById("betAmount");
   const messageEl = document.getElementById("message");
-  const claimBonusBtn = document.getElementById("claimBonusBtn");
+  const doubleToggle = document.getElementById("doubleToggle");
+  const betButtons = document.querySelectorAll(".bet-btn");
   const slotEls = [document.getElementById("slot1"), document.getElementById("slot2"), document.getElementById("slot3")];
-
-  // Store daily bonus claim timestamp locally per wallet
-  function getDailyBonusKey() {
-    return 'dailyBonusClaim_' + accounts[0];
-  }
-
-  function hasClaimedToday() {
-    const lastClaim = localStorage.getItem(getDailyBonusKey());
-    if (!lastClaim) return false;
-    const lastDate = new Date(parseInt(lastClaim));
-    const now = new Date();
-    return now.toDateString() === lastDate.toDateString();
-  }
-
-  function setClaimedToday() {
-    localStorage.setItem(getDailyBonusKey(), Date.now().toString());
-  }
+  const dailyBonusBtn = document.getElementById("dailyBonusBtn");
+  const dailyBonusMessage = document.getElementById("dailyBonusMessage");
 
   function fromWei(amount, decimals) {
     return amount / (10 ** decimals);
   }
-
   function toWei(amount, decimals) {
     return Math.floor(amount * (10 ** decimals));
+  }
+
+  connectBtn.onclick = connectWallet;
+  disconnectBtn.onclick = disconnectWallet;
+  spinBtn.onclick = spin;
+  doubleToggle.onchange = () => {
+    messageEl.textContent = doubleToggle.checked ? "Times 2 enabled for weekend" : "";
+  };
+  dailyBonusBtn.onclick = claimDailyBonus;
+
+  betButtons.forEach(btn => {
+    btn.onclick = () => {
+      currentBet = parseInt(btn.dataset.bet);
+      betButtons.forEach(b => b.style.backgroundColor = "#2ba02b");
+      btn.style.backgroundColor = "#3dc63d";
+      messageEl.textContent = `Bet set to ${currentBet} SOBEX`;
+      checkSpinAvailability();
+    };
+  });
+
+  function resetSlots() {
+    slotEls.forEach(slot => (slot.textContent = "?"));
   }
 
   async function connectWallet() {
     try {
       provider = new WalletConnectProvider.default({
         rpc: {
-          8453: "https://mainnet.base.org" // Base mainnet RPC
+          8453: "https://mainnet.base.org"
         }
       });
 
@@ -155,10 +225,10 @@
       walletAddressEl.textContent = "Wallet: " + accounts[0];
       connectBtn.style.display = "none";
       disconnectBtn.style.display = "inline-block";
-      spinBtn.disabled = false;
-      claimBonusBtn.disabled = hasClaimedToday();
 
       await updateUserBalance();
+      checkSpinAvailability();
+      checkDailyBonus();
 
       provider.on("disconnect", () => {
         disconnectWallet();
@@ -166,127 +236,37 @@
 
       messageEl.textContent = "Wallet connected. Ready to play.";
     } catch (err) {
-      messageEl.textContent = "Failed to connect wallet: " + err.message;
+      messageEl.textContent = "Error connecting wallet: " + err.message;
     }
   }
 
-  function disconnectWallet() {
+  async function disconnectWallet() {
     if (provider) {
-      provider.disconnect();
+      await provider.disconnect();
       provider = null;
-      web3 = null;
-      accounts = [];
-      sobexContract = null;
     }
+    web3 = null;
+    accounts = [];
+    sobexContract = null;
+    userBalance = 0;
+    decimals = 18;
     walletAddressEl.textContent = "Wallet: Not connected";
+    balanceEl.textContent = "0";
     connectBtn.style.display = "inline-block";
     disconnectBtn.style.display = "none";
     spinBtn.disabled = true;
-    claimBonusBtn.disabled = true;
-    balanceEl.textContent = "0";
+    dailyBonusBtn.disabled = true;
+    dailyBonusMessage.textContent = "";
     messageEl.textContent = "Wallet disconnected.";
     resetSlots();
   }
 
   async function updateUserBalance() {
-    if (!sobexContract || accounts.length === 0) return;
+    if (!sobexContract || !accounts.length) return;
     try {
-      const balanceRaw = await sobexContract.methods.balanceOf(accounts[0]).call();
-      userBalance = fromWei(balanceRaw, decimals);
+      let bal = await sobexContract.methods.balanceOf(accounts[0]).call();
+      userBalance = fromWei(bal, decimals);
       balanceEl.textContent = userBalance.toFixed(4);
     } catch (err) {
       messageEl.textContent = "Error fetching balance: " + err.message;
-    }
-  }
-
-  function resetSlots() {
-    slotEls.forEach(slot => (slot.textContent = "?"));
-  }
-
-  function spinResult() {
-    let result = [];
-    for (let i = 0; i < 3; i++) {
-      const idx = Math.floor(Math.random() * symbols.length);
-      result.push(symbols[idx]);
-    }
-    return result;
-  }
-
-  // Calculate winnings based on result array and bet
-  // If 3 match: 5x bet, if 2 match: 2x bet, else 0
-  function calculateWinnings(results, bet) {
-    const [a, b, c] = results;
-    let winnings = 0;
-    if (a === b && b === c) {
-      winnings = bet * 5;
-    } else if (a === b || b === c || a === c) {
-      winnings = bet * 2;
-    }
-    // Weekend double winnings
-    const now = new Date();
-    const day = now.getDay();
-    if (day === 6 || day === 0) { // Saturday = 6, Sunday = 0
-      winnings *= 2;
-    }
-    return winnings;
-  }
-
-  async function spin() {
-    if (!sobexContract || accounts.length === 0) {
-      messageEl.textContent = "Please connect your wallet first.";
-      return;
-    }
-
-    const betAmount = parseFloat(betAmountInput.value);
-    if (isNaN(betAmount) || betAmount < 1) {
-      messageEl.textContent = "Enter a valid bet amount (minimum 1).";
-      return;
-    }
-
-    if (betAmount > userBalance) {
-      messageEl.textContent = "Insufficient SOBEX balance.";
-      return;
-    }
-
-    spinBtn.disabled = true;
-    messageEl.textContent = "Spinning... Good luck!";
-
-    // Show spinning animation (simple)
-    let spinCount = 0;
-    const spinInterval = setInterval(() => {
-      const spinSymbols = spinResult();
-      for(let i=0; i<3; i++) slotEls[i].textContent = spinSymbols[i];
-      spinCount++;
-      if (spinCount > 10) {
-        clearInterval(spinInterval);
-        finalizeSpin(betAmount);
-      }
-    }, 100);
-  }
-
-  async function finalizeSpin(betAmount) {
-    const results = spinResult();
-    for(let i=0; i<3; i++) slotEls[i].textContent = results[i];
-
-    const winnings = calculateWinnings(results, betAmount);
-    if (winnings > 0) {
-      messageEl.textContent = `Congrats! You won ${winnings.toFixed(4)} SOBEX!`;
-      await updateBalanceAfterWin(winnings - betAmount); // net gain
-    } else {
-      messageEl.textContent = `No luck this time. You lost ${betAmount.toFixed(4)} SOBEX.`;
-      await updateBalanceAfterWin(-betAmount);
-    }
-    spinBtn.disabled = false;
-  }
-
-  async function updateBalanceAfterWin(netChange) {
-    // This example does NOT actually send tokens on-chain (since that requires contract permissions and user approval)
-    // Instead, it simulates balance update client-side.
-
-    userBalance += netChange;
-    if (userBalance < 0) userBalance = 0;
-    balanceEl.textContent = userBalance.toFixed(4);
-
-    // Real implementation would:
-    // - For bet: call contract to transfer bet amount from user to game contract
-    // -
+      userBalance = 0;
