@@ -11,7 +11,7 @@
     background-color: #111;
     color: #fff;
     margin: 0;
-    padding-bottom: 80px; /* space for footer */
+    padding-bottom: 80px;
   }
   h1 {
     margin-top: 30px;
@@ -168,14 +168,11 @@
 
   function selectBet(amount) {
     selectedBet = amount;
-    // Keep multiplier active if it is
 
-    // Remove selected class from all bet buttons
     document.getElementById('bet1Btn').classList.remove('selected');
     document.getElementById('bet5Btn').classList.remove('selected');
     document.getElementById('bet10Btn').classList.remove('selected');
 
-    // Add selected to current bet
     document.getElementById('bet' + amount + 'Btn').classList.add('selected');
   }
 
@@ -241,7 +238,6 @@
     spinSound.currentTime = 0;
     spinSound.play();
 
-    // Generate spin results randomly
     const finalResult = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
 
     animateSpin(finalResult);
@@ -255,8 +251,41 @@
       let baseWin = 0;
 
       if (allMatch) {
-        baseWin = selectedBet * 10; // Big win for 3 matches
+        baseWin = selectedBet * 10;
+      } else if (twoMatch) {
+        baseWin = selectedBet * 2;
       }
-      <footer>
-  Created by <strong>Big Daddy AZ82</strong>. Sponsored by <a href="https://www.facebook.com/ReynoldsPaintingandResurfacingLLC" target="_blank" rel="noopener noreferrer">Reynolds Painting and Resurfacing LLC</a>.
+
+      if (multiplierActive) baseWin *= 2;
+
+      if (baseWin > 0) {
+        winSound.currentTime = 0;
+        winSound.play();
+        document.getElementById('result').textContent = `You won ${baseWin} SOBX!`;
+      } else {
+        loseSound.currentTime = 0;
+        loseSound.play();
+        document.getElementById('result').textContent = `You lost ${selectedBet} SOBX. Try again!`;
+      }
+    }, 3500);
+  }
+
+  function toggleMusic() {
+    const music = document.getElementById('backgroundMusic');
+    const btn = document.getElementById('musicToggle');
+    if (music.paused) {
+      music.play();
+      btn.textContent = 'Music: On';
+    } else {
+      music.pause();
+      btn.textContent = 'Music: Off';
+    }
+  }
+</script>
+
+<footer>
+  SOBX Slots &mdash; Created by BigDaddyAZ82  Sponsored By Reynolds Painting & Resurfacing LLC &mdash; <a href="https://github.com/bigdaddyaz82">GitHub Repo</a>
 </footer>
+
+</body>
+</html>
