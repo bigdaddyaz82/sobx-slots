@@ -16,15 +16,24 @@
     margin-bottom: 10px;
     color: #00ff99;
     text-shadow: 0 0 10px #00ff99;
+    text-align: left; /* align left so controls line up below */
   }
-  #controls {
+  #controlsWrapper {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 25px;
+    justify-content: space-between;
+    align-items: flex-start;
+    max-width: 450px;
+    margin: 0 auto 30px auto;
+    gap: 20px;
   }
-  button, select {
+  #leftControls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  #leftControls button, #leftControls select {
+    width: 160px;
     border: none;
     border-radius: 10px;
     font-weight: bold;
@@ -34,8 +43,9 @@
     transition: background 0.3s ease;
     color: #121212;
     background: #00ff99;
+    text-align: center;
   }
-  button:hover, select:hover {
+  #leftControls button:hover, #leftControls select:hover {
     background: #00cc77;
   }
   #spinBtn {
@@ -45,12 +55,17 @@
     padding: 18px 50px;
     font-weight: 900;
     box-shadow: 0 0 15px #ff3333;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    align-self: center;
+    min-width: 160px;
   }
   #spinBtn:hover {
     background: #cc0000;
   }
   #reels {
-    margin: 40px auto;
+    margin: 0 auto;
     display: flex;
     justify-content: center;
     gap: 20px;
@@ -97,17 +112,17 @@
 
 <h1>SOBX Slot Machine</h1>
 
-<div id="controls">
-  <button id="connectBtn">Connect Wallet</button>
-
-  <select id="betAmount">
-    <option value="0.01">Bet 0.01 SOBX</option>
-    <option value="0.05">Bet 0.05 SOBX</option>
-    <option value="0.1">Bet 0.1 SOBX</option>
-    <option value="0.5">Bet 0.5 SOBX</option>
-    <option value="1">Bet 1 SOBX</option>
-  </select>
-
+<div id="controlsWrapper">
+  <div id="leftControls">
+    <button id="connectBtn">Connect Wallet</button>
+    <select id="betAmount">
+      <option value="0.01">Bet 0.01 SOBX</option>
+      <option value="0.05">Bet 0.05 SOBX</option>
+      <option value="0.1">Bet 0.1 SOBX</option>
+      <option value="0.5">Bet 0.5 SOBX</option>
+      <option value="1">Bet 1 SOBX</option>
+    </select>
+  </div>
   <button id="spinBtn" disabled>SPIN</button>
 </div>
 
@@ -151,7 +166,6 @@
     const reels = document.querySelectorAll('.reel span');
     document.getElementById('spinResult').textContent = 'Spinning...';
 
-    // Quick spinning animation by cycling symbols fast
     let spinCount = 0;
     const spinMax = 20;
     const spinInterval = setInterval(() => {
@@ -163,7 +177,6 @@
       if (spinCount >= spinMax) clearInterval(spinInterval);
     }, 100);
 
-    // Call backend spin endpoint with user and bet amount
     try {
       const response = await fetch('/api/spin', {
         method: 'POST',
