@@ -15,10 +15,34 @@
     margin-top: 30px;
     font-size: 2.5rem;
   }
+  #walletSection {
+    margin-top: 15px;
+    margin-bottom: 40px;
+  }
+  #wallet {
+    padding: 10px;
+    width: 320px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  #connectBtn {
+    padding: 10px 20px;
+    font-size: 1rem;
+    margin-left: 8px;
+    border-radius: 5px;
+    border: none;
+    background-color: #28a745;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  #connectBtn:hover {
+    background-color: #218838;
+  }
   .slot-machine {
     display: flex;
     justify-content: center;
-    margin-top: 50px;
     margin-bottom: 30px;
   }
   .symbol {
@@ -36,18 +60,18 @@
   .buttons-row {
     margin-top: 30px;
   }
-  button {
+  button.betBtn {
     padding: 12px 25px;
     font-size: 1rem;
     margin: 10px 8px;
     border-radius: 8px;
     border: none;
     cursor: pointer;
-    background-color: #28a745; /* green */
+    background-color: #28a745;
     color: #fff;
     transition: background-color 0.2s;
   }
-  button:hover {
+  button.betBtn:hover {
     background-color: #218838;
   }
   button.selected {
@@ -56,24 +80,30 @@
     font-weight: bold;
   }
   #multiplierBtn {
-    background-color: #28a745; /* same green */
+    background-color: #28a745;
   }
   #multiplierBtn.selected {
     background-color: #218838;
     font-weight: bold;
   }
+  #spinBtn {
+    margin-top: 20px;
+    font-size: 1.2rem;
+    padding: 12px 40px;
+    background-color: #007bff;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  #spinBtn:hover {
+    background-color: #0056b3;
+  }
   #result {
     margin-top: 25px;
     font-size: 1.3rem;
     min-height: 1.5em;
-  }
-  input[type="text"] {
-    padding: 10px;
-    width: 320px;
-    font-size: 1rem;
-    margin-top: 30px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
   }
 </style>
 </head>
@@ -81,28 +111,25 @@
 
 <h1>SOBX Slot Machine</h1>
 
+<div id="walletSection">
+  <input type="text" id="wallet" placeholder="Enter your wallet address" />
+  <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+</div>
+
 <div class="slot-machine">
   <div class="symbol" id="symbol1">?</div>
   <div class="symbol" id="symbol2">?</div>
   <div class="symbol" id="symbol3">?</div>
 </div>
 
-<div>
-  <input type="text" id="wallet" placeholder="Enter your wallet address" />
-  <br />
-  <button onclick="connectWallet()">Connect Wallet</button>
-</div>
-
 <div class="buttons-row">
-  <button id="bet1Btn" onclick="selectBet(1)">Bet 1</button>
-  <button id="bet5Btn" onclick="selectBet(5)">Bet 5</button>
-  <button id="bet10Btn" onclick="selectBet(10)">Bet 10</button>
-  <button id="multiplierBtn" onclick="toggleMultiplier()">×2</button>
+  <button class="betBtn" id="bet1Btn" onclick="selectBet(1)">Bet 1</button>
+  <button class="betBtn" id="bet5Btn" onclick="selectBet(5)">Bet 5</button>
+  <button class="betBtn" id="bet10Btn" onclick="selectBet(10)">Bet 10</button>
+  <button class="betBtn" id="multiplierBtn" onclick="toggleMultiplier()">×2</button>
 </div>
 
-<div>
-  <button style="margin-top:20px; font-size:1.2rem; padding:12px 40px;" onclick="spin()">Spin</button>
-</div>
+<button id="spinBtn" onclick="spin()">Spin</button>
 
 <div id="result"></div>
 
@@ -152,13 +179,11 @@
       window.ethereum.request({ method: 'eth_requestAccounts' })
       .then(accounts => {
         walletInput.value = accounts[0];
-        document.getElementById('result').textContent = 'Wallet connected: ' + accounts[0];
+        // No alert, no popup — silent update only
       })
-      .catch(err => {
-        document.getElementById('result').textContent = 'Wallet connection failed: ' + err.message;
+      .catch(() => {
+        // Silent fail — no popup
       });
-    } else {
-      document.getElementById('result').textContent = 'MetaMask or other Ethereum wallet extension not detected.';
     }
   }
 
@@ -194,7 +219,7 @@
   function spin() {
     const wallet = document.getElementById('wallet').value.trim();
     if (!wallet) {
-      document.getElementById('result').textContent = 'Please enter or connect your wallet address first.';
+      document.getElementById('result').textContent = 'Enter or connect your wallet first.';
       return;
     }
 
@@ -205,30 +230,42 @@
       result.push(getRandomSymbol());
     }
 
-    // House edge 80% lose, 20% win
-    const playerWins = Math.random() < 0.2;
-    if(playerWins){
-      const winSymbol = symbols[Math.floor(Math.random() * symbols.length)];
-      result = [winSymbol, winSymbol, winSymbol];
-    } else {
-      // Ensure no accidental 3-match win
-      while(result[0] === result[1] && result[1] === result[2]){
-        result = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
-      }
+    // Logic for outcomes:
+    // Lose: no matches
+    // Win: two matches => win bet amount back
+    // Big Win: three matches => double payout
+    // Multiplier doubles payout
+
+    // Determine matches
+    const counts = {};
+    result.forEach(sym => counts[sym] = (counts[sym] || 0) + 1);
+
+    // Outcome detection
+    let outcome = 'lose'; // default
+    let payout = 0;
+    let matchedSymbolsCount = 0;
+
+    if (Object.values(counts).includes(3)) {
+      outcome = 'bigwin';
+      matchedSymbolsCount = 3;
+    } else if (Object.values(counts).includes(2)) {
+      outcome = 'win';
+      matchedSymbolsCount = 2;
     }
 
     animateSpin(result);
 
     setTimeout(() => {
-      const allMatch = result.every(s => s === result[0]);
-      if(allMatch && playerWins){
-        let payoutMultiplier = multiplierActive ? 2 : 1;
-        let betAmount = multiplierActive ? selectedBet * 2 : selectedBet;
-        let payout = betAmount * payoutMultiplier;
-        document.getElementById('result').textContent = `You win! Bet: ${betAmount} tokens, Payout: ${payout} tokens.`;
+      const bet = multiplierActive ? selectedBet * 2 : selectedBet;
+      if (outcome === 'bigwin') {
+        const basePayout = bet * 2;
+        payout = multiplierActive ? basePayout * 2 : basePayout; // times 4 if multiplier active
+        document.getElementById('result').textContent = `Big Win! You matched 3 symbols. Bet: ${bet} tokens, Payout: ${payout} tokens.`;
+      } else if (outcome === 'win') {
+        payout = bet; // return bet amount
+        document.getElementById('result').textContent = `You matched 2 symbols! Bet: ${bet} tokens, Payout: ${payout} tokens.`;
       } else {
-        let betAmount = multiplierActive ? selectedBet * 2 : selectedBet;
-        document.getElementById('result').textContent = `You lost ${betAmount} tokens. Try again!`;
+        document.getElementById('result').textContent = `You lost ${bet} tokens. Try again!`;
       }
     }, 1800);
   }
@@ -239,4 +276,3 @@
 </script>
 
 </body>
-</html>
