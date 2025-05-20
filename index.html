@@ -9,7 +9,7 @@
     font-family: Arial, sans-serif;
     text-align: center;
     background-color: #111;
-    color: #28a745; /* green you liked */
+    color: #fff;
   }
   h1 {
     margin-top: 30px;
@@ -24,7 +24,7 @@
   .symbol {
     width: 120px;
     height: 120px;
-    border: 4px solid #28a745;
+    border: 4px solid #fff;
     margin: 0 10px;
     font-size: 4rem;
     display: flex;
@@ -44,9 +44,8 @@
     border: none;
     cursor: pointer;
     background-color: #28a745;
-    color: #111;
+    color: #fff;
     transition: background-color 0.2s;
-    font-weight: bold;
   }
   button:hover {
     background-color: #218838;
@@ -54,6 +53,14 @@
   button.selected {
     background-color: #ffc107;
     color: #111;
+    font-weight: bold;
+  }
+  #multiplierBtn {
+    background-color: #007bff;
+  }
+  #multiplierBtn.selected {
+    background-color: #0056b3;
+    font-weight: bold;
   }
   #result {
     margin-top: 25px;
@@ -67,6 +74,12 @@
     margin-top: 30px;
     border-radius: 5px;
     border: 1px solid #ccc;
+  }
+  #musicToggle {
+    margin-top: 15px;
+    background-color: #444;
+    color: #fff;
+    border-radius: 5px;
   }
 </style>
 </head>
@@ -90,6 +103,7 @@
   <button id="bet1Btn" onclick="selectBet(1)">Bet 1</button>
   <button id="bet5Btn" onclick="selectBet(5)">Bet 5</button>
   <button id="bet10Btn" onclick="selectBet(10)">Bet 10</button>
+  <button id="multiplierBtn" onclick="toggleMultiplier()">×2</button>
 </div>
 
 <div>
@@ -97,6 +111,13 @@
 </div>
 
 <div id="result"></div>
+
+<button id="musicToggle" onclick="toggleMusic()">Toggle Music</button>
+
+<audio id="backgroundMusic" loop src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_713a2f2541.mp3?filename=ambient-music-11024.mp3" preload="auto"></audio>
+<audio id="spinSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_59b3dff924.mp3?filename=casino-slot-machine-4614.mp3" preload="auto"></audio>
+<audio id="winSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_4f0d3f142a.mp3?filename=winning-coin-4933.mp3" preload="auto"></audio>
+<audio id="loseSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_c464aa6f30.mp3?filename=slot-machine-losing-sound-4603.mp3" preload="auto"></audio>
 
 <script>
   const symbols = ['cherry', 'lemon', 'orange', 'seven', 'bar', 'grape', 'diamond', 'skull', 'apple', 'parrot', 'horseshoe', 'clover', 'star'];
@@ -117,15 +138,34 @@
   };
 
   let selectedBet = 1;
+  let multiplierActive = false;
   let spinTimeouts = [];
-  const ticks = 20; // number of symbol changes during spin animation
 
   function selectBet(amount) {
     selectedBet = amount;
+    multiplierActive = false;
+    document.getElementById('multiplierBtn').classList.remove('selected');
+
     document.getElementById('bet1Btn').classList.remove('selected');
     document.getElementById('bet5Btn').classList.remove('selected');
     document.getElementById('bet10Btn').classList.remove('selected');
+
     document.getElementById('bet' + amount + 'Btn').classList.add('selected');
+  }
+
+  function toggleMultiplier() {
+    multiplierActive = !multiplierActive;
+    document.getElementById('multiplierBtn').classList.toggle('selected');
+
+    if(multiplierActive){
+      // Clear bet buttons selection visually but keep bet amount
+      document.getElementById('bet1Btn').classList.remove('selected');
+      document.getElementById('bet5Btn').classList.remove('selected');
+      document.getElementById('bet10Btn').classList.remove('selected');
+    } else {
+      // Re-select current bet button
+      selectBet(selectedBet);
+    }
   }
 
   function connectWallet() {
@@ -138,7 +178,7 @@
       })
       .catch(err => alert('Wallet connection failed: ' + err.message));
     } else {
-      alert('MetaMask or other Ethereum wallet extension not detected.');
+      alert('MetaMask or Ethereum wallet not detected.');
     }
   }
 
@@ -148,23 +188,24 @@
 
   function animateSpin(finalResult) {
     clearTimeouts();
+    const ticks = 25;
     for (let i = 1; i <= 3; i++) {
       spinTimeouts[i] = [];
       for (let t = 0; t < ticks; t++) {
         const timeout = setTimeout(() => {
-          document.getElementById('symbol' + i).textContent = emojiMap[getRandomSymbol()];
-        }, t * 100 + i * 100);
+          document.getElementById('symbol'+i).textContent = emojiMap[getRandomSymbol()];
+        }, t * 100 + i*100);
         spinTimeouts[i].push(timeout);
       }
       setTimeout(() => {
-        document.getElementById('symbol' + i).textContent = emojiMap[finalResult[i - 1]];
-      }, ticks * 100 + i * 100);
+        document.getElementById('symbol'+i).textContent = emojiMap[finalResult[i-1]];
+      }, ticks * 100 + i*100);
     }
   }
 
   function clearTimeouts() {
     for (let i = 1; i <= 3; i++) {
-      if (spinTimeouts[i]) {
+      if(spinTimeouts[i]) {
         spinTimeouts[i].forEach(to => clearTimeout(to));
       }
     }
@@ -177,44 +218,29 @@
       return;
     }
 
+    const spinSound = document.getElementById('spinSound');
+    const winSound = document.getElementById('winSound');
+    const loseSound = document.getElementById('loseSound');
+
+    spinSound.currentTime = 0;
+    spinSound.play();
+
     document.getElementById('result').textContent = 'Spinning...';
 
+    // Calculate bet amount (base bet * 2 if multiplier active)
+    let betAmount = selectedBet;
+    if(multiplierActive){
+      betAmount = betAmount * 2;
+    }
+
+    // Generate random result symbols (3 symbols)
     let result = [];
-    for (let i = 0; i < 3; i++) {
+    for(let i = 0; i < 3; i++) {
       result.push(getRandomSymbol());
     }
 
-    // House edge: 80% player loses, 20% player wins
+    // 20% chance player wins with 3 matching symbols, else lose
     const playerWins = Math.random() < 0.2;
 
-    if (playerWins) {
-      // Player wins - all 3 symbols match
-      const winSymbol = symbols[Math.floor(Math.random() * symbols.length)];
-      result = [winSymbol, winSymbol, winSymbol];
-    } else {
-      // Player loses - make sure no 3-match
-      while (result[0] === result[1] && result[1] === result[2]) {
-        result = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
-      }
-    }
-
-    animateSpin(result);
-
-    setTimeout(() => {
-      const allMatch = result.every(s => s === result[0]);
-      if (allMatch && playerWins) {
-        const payout = selectedBet * 2;
-        document.getElementById('result').textContent = `You win! Payout: ${payout} tokens.`;
-      } else {
-        document.getElementById('result').textContent = `You lost ${selectedBet} tokens. Try again!`;
-      }
-    }, ticks * 100 + 400);
-  }
-
-  window.onload = () => {
-    selectBet(1);
-  };
-</script>
-
-</body>
-</html>
+    if(playerWins){
+      const winSymbol = symbols[Math.floor(Math.random() *
