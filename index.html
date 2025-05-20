@@ -108,14 +108,14 @@
 
 <h1>SOBX Slot Machine</h1>
 
-<!-- Wallet input and connect button -->
+<!-- Moved wallet input and connect button directly under title -->
 <div>
   <input type="text" id="wallet" placeholder="Enter your wallet address" autocomplete="off" />
   <br />
   <button onclick="connectWallet()">Connect Wallet</button>
 </div>
 
-<!-- Slot machine wheels -->
+<!-- Moved slot machine wheels below wallet connect -->
 <div class="slot-machine">
   <div class="symbol" id="symbol1">?</div>
   <div class="symbol" id="symbol2">?</div>
@@ -134,7 +134,6 @@
 </div>
 
 <div id="result"></div>
-<div id="dailyBonus" style="margin-top: 15px; font-size: 1.1rem; color: #ffc107;"></div>
 
 <button id="musicToggle" onclick="toggleMusic()">Music: Off</button>
 
@@ -142,13 +141,6 @@
 <audio id="spinSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_59b3dff924.mp3?filename=casino-slot-machine-4614.mp3" preload="auto"></audio>
 <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_4f0d3f142a.mp3?filename=winning-coin-4933.mp3" preload="auto"></audio>
 <audio id="loseSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_c464aa6f30.mp3?filename=slot-machine-losing-sound-4603.mp3" preload="auto"></audio>
-
-<!-- Wallet connection status message above footer -->
-<div id="walletStatus" style="margin: 10px 0; font-size: 1.1rem; color: #0f0;"></div>
-
-<footer>
-  &copy; 2025 Reynolds Painting & Resurfacing LLC | <a href="mailto:azreynoldspaintingllc@gmail.com">Contact Us</a>
-</footer>
 
 <script>
   const symbols = ['cherry', 'lemon', 'orange', 'seven', 'bar', 'grape', 'diamond', 'skull', 'apple', 'parrot', 'horseshoe', 'clover', 'star'];
@@ -174,7 +166,6 @@
 
   window.onload = () => {
     selectBet(selectedBet);
-    checkDailyBonus();
   };
 
   function selectBet(amount) {
@@ -193,26 +184,18 @@
   }
 
   function connectWallet() {
-  const walletInput = document.getElementById('wallet');
-  const resultDiv = document.getElementById('result');
-
-  if (window.ethereum) {
-    window.ethereum.request({ method: 'eth_requestAccounts' })
-    .then(accounts => {
-      walletInput.value = accounts[0];
-      resultDiv.textContent = 'Wallet connected: ' + accounts[0];
-      resultDiv.style.color = '#28a745';
-    })
-    .catch(err => {
-      resultDiv.textContent = 'Wallet connection failed: ' + err.message;
-      resultDiv.style.color = '#dc3545';
-    });
-  } else {
-    resultDiv.textContent = 'MetaMask or Ethereum wallet not detected.';
-    resultDiv.style.color = '#dc3545';
+    const walletInput = document.getElementById('wallet');
+    if (window.ethereum) {
+      window.ethereum.request({ method: 'eth_requestAccounts' })
+      .then(accounts => {
+        walletInput.value = accounts[0];
+        alert('Wallet connected: ' + accounts[0]);
+      })
+      .catch(err => alert('Wallet connection failed: ' + err.message));
+    } else {
+      alert('MetaMask or Ethereum wallet not detected.');
+    }
   }
-  }
-  
 
   function getRandomSymbol() {
     return symbols[Math.floor(Math.random() * symbols.length)];
@@ -243,13 +226,6 @@
     }
   }
 
-  // Helper to check if today is Saturday or Sunday for double win weekend
-  function isDoubleWinWeekend() {
-    const today = new Date().getDay();
-    // 0 = Sunday, 6 = Saturday
-    return today === 0 || today === 6;
-  }
-
   function spin() {
     const wallet = document.getElementById('wallet').value.trim();
     if (!wallet) {
@@ -258,38 +234,60 @@
     }
 
     const spinSound = document.getElementById('spinSound');
+    const winSound = document.getElementById('winSound');
+    const loseSound = document.getElementById('loseSound');
+
+    spinSound.currentTime = 0;
     spinSound.play();
 
     const finalResult = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
+
     animateSpin(finalResult);
 
     setTimeout(() => {
-      evaluateSpin(finalResult);
+      spinSound.pause();
+
+      const allMatch = finalResult[0] === finalResult[1] && finalResult[1] === finalResult[2];
+      const twoMatch = finalResult[0] === finalResult[1] || finalResult[1] === finalResult[2] || finalResult[0] === finalResult[2];
+
+      let baseWin = 0;
+
+      if (allMatch) {
+        baseWin = selectedBet * 10;
+      } else if (twoMatch) {
+        baseWin = selectedBet * 2;
+      }
+
+      if (multiplierActive) baseWin *= 2;
+
+      if (baseWin > 0) {
+        winSound.currentTime = 0;
+        winSound.play();
+        document.getElementById('result').textContent = `You won ${baseWin} SOBX!`;
+      } else {
+        loseSound.currentTime = 0;
+        loseSound.play();
+        document.getElementById('result').textContent = `You lost ${selectedBet} SOBX. Try again!`;
+      }
     }, 3500);
-  }
-
-  function evaluateSpin(result) {
-    // Simple win logic: all three symbols match
-    const isWin = (result[0] === result[1] && result[1] === result[2]);
-    const resultDiv = document.getElementById('result');
-
-    if (isWin) {
-      const winSound = document.getElementById('winSound');
-      winSound.play();
-      let winnings = selectedBet * (multiplierActive ? 2 : 1);
-      resultDiv.textContent = `You win ${winnings} SOBX tokens!`;
-    } else {
-      const loseSound = document.getElementById('loseSound');
-      loseSound.play();
-      resultDiv.textContent = 'Try again!';
-    }
-  }
-
-  function checkDailyBonus() {
-    // Placeholder for daily bonus logic
-    const dailyBonusDiv = document.getElementById('dailyBonus');
-    dailyBonusDiv.textContent = 'Daily bonus available! Spin to claim.';
   }
 
   function toggleMusic() {
     const music = document.getElementById('backgroundMusic');
+    const btn = document.getElementById('musicToggle');
+    if (music.paused) {
+      music.play();
+      btn.textContent = 'Music: On';
+    } else {
+      music.pause();
+      btn.textContent = 'Music: Off';
+    }
+  }
+</script>
+
+<footer>
+  SOBX Slots &mdash; Created by BigDaddyAZ82  Sponsored By Reynolds Painting & Resurfacing LLC Painting perfection one surface at a time</a>
+</footer>
+
+</body>
+</html>
