@@ -1,88 +1,48 @@
-// Full front-end JS for wallet connect + spin
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SOBEX Slots</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+    #result { font-size: 3rem; margin-top: 20px; }
+    button { font-size: 1.5rem; padding: 10px 20px; }
+  </style>
+</head>
+<body>
 
-const spinButton = document.getElementById('spinButton');
-const connectWalletButton = document.getElementById('connectWallet');
-const walletAddressSpan = document.getElementById('walletAddress');
-const spinResultDiv = document.getElementById('spinResult');
-const messageDiv = document.getElementById('message');
-const balanceDiv = document.getElementById('balance');
+  <h1>SOBEX Slot Machine</h1>
+  <button id="spinBtn">Spin</button>
+  <div id="result"></div>
 
-let userWalletAddress = null;
+  <script>
+    const spinBtn = document.getElementById('spinBtn');
+    const resultDiv = document.getElementById('result');
 
-// Connect MetaMask wallet on Base network
-async function connectWallet() {
-  if (!window.ethereum) {
-    alert('MetaMask not detected. Please install MetaMask!');
-    return;
-  }
+    spinBtn.addEventListener('click', async () => {
+      resultDiv.textContent = 'Spinning...';
 
-  try {
-    // Request wallet connection
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    userWalletAddress = accounts[0];
-    walletAddressSpan.textContent = userWalletAddress;
-    console.log('Connected wallet:', userWalletAddress);
+      try {
+        const response = await fetch('/api/spin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
 
-    // Optional: check network and alert if not Base
-    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-    // Base Mainnet chainId = '0xA4B1'
-    if (chainId !== '0xA4B1') {
-      alert('Please switch your MetaMask network to Base Mainnet.');
-    }
-  } catch (error) {
-    console.error('Wallet connection failed:', error);
-    alert('Wallet connection failed: ' + error.message);
-  }
-}
+        if (!response.ok) throw new Error('Network response was not ok');
 
-// Example function to get bet amount from UI (implement your own logic here)
-function getSelectedBetAmount() {
-  const betInput = document.getElementById('betAmount');
-  return Number(betInput.value) || 0;
-}
+        const data = await response.json();
 
-// Spin button handler
-spinButton.addEventListener('click', async () => {
-  const betAmount = getSelectedBetAmount();
-
-  if (betAmount < 1) {
-    alert('Select a valid bet amount!');
-    return;
-  }
-
-  if (!userWalletAddress) {
-    alert('Please connect your wallet first!');
-    return;
-  }
-
-  try {
-    const response = await fetch('http://localhost:3000/api/spin', { // Change URL if needed
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bet: betAmount, wallet: userWalletAddress }),
+        if (data.success) {
+          resultDiv.textContent = data.result.join(' | ');
+        } else {
+          resultDiv.textContent = 'Spin failed. Try again.';
+        }
+      } catch (error) {
+        resultDiv.textContent = 'Error spinning: ' + error.message;
+      }
     });
+  </script>
 
-    if (!response.ok) throw new Error('Spin failed');
-
-    const data = await response.json();
-
-    // Update UI with spin result
-    spinResultDiv.textContent = data.spinResult.join(' | ');
-    messageDiv.textContent = data.message;
-    balanceDiv.textContent = `Balance: ${data.balance} SOBEX`;
-
-  } catch (error) {
-    alert('Error spinning: ' + error.message);
-  }
-});
-
-// Connect wallet button handler
-connectWalletButton.addEventListener('click', connectWallet);
-
-// Optional: automatically connect wallet if already connected
-window.ethereum?.request({ method: 'eth_accounts' }).then(accounts => {
-  if (accounts.length > 0) {
-    userWalletAddress = accounts[0];
-    walletAddressSpan.textContent = userWalletAddress;
-  }
-});
+</body>
+</html>
