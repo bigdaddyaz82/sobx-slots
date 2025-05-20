@@ -78,7 +78,6 @@
     margin-top: 30px;
     border-radius: 5px;
     border: 1px solid #ccc;
-    text-align: center;
   }
   #musicToggle {
     margin-top: 15px;
@@ -163,36 +162,26 @@
   let multiplierActive = false;
   let spinTimeouts = [];
 
-  // Initialize bet button selection on page load
   window.onload = () => {
     selectBet(selectedBet);
   };
 
   function selectBet(amount) {
     selectedBet = amount;
-    multiplierActive = false;
-    document.getElementById('multiplierBtn').classList.remove('selected');
-
+    // Keep multiplier as is — do NOT clear or deselect multiplier here
+    
+    // Remove selection from all bet buttons
     document.getElementById('bet1Btn').classList.remove('selected');
     document.getElementById('bet5Btn').classList.remove('selected');
     document.getElementById('bet10Btn').classList.remove('selected');
 
+    // Add selection to the chosen bet button
     document.getElementById('bet' + amount + 'Btn').classList.add('selected');
   }
 
   function toggleMultiplier() {
     multiplierActive = !multiplierActive;
     document.getElementById('multiplierBtn').classList.toggle('selected');
-
-    if(multiplierActive){
-      // Clear bet buttons selection visually but keep bet amount
-      document.getElementById('bet1Btn').classList.remove('selected');
-      document.getElementById('bet5Btn').classList.remove('selected');
-      document.getElementById('bet10Btn').classList.remove('selected');
-    } else {
-      // Re-select current bet button
-      selectBet(selectedBet);
-    }
   }
 
   function connectWallet() {
@@ -252,34 +241,45 @@
     spinSound.currentTime = 0;
     spinSound.play();
 
-    // Generate final symbols
-    const finalResult = [];
-    for(let i=0; i<3; i++) {
-      finalResult.push(getRandomSymbol());
-    }
+    // Generate spin results randomly
+    const finalResult = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
 
     animateSpin(finalResult);
 
     setTimeout(() => {
-      const isWin = finalResult[0] === finalResult[1] && finalResult[1] === finalResult[2];
-      let winnings = 0;
-      if(isWin){
-        winnings = selectedBet * (multiplierActive ? 2 : 1) * 10; // win multiplier 10x
-        document.getElementById('result').textContent = `You won ${winnings} SOBX! 🎉`;
+      spinSound.pause();
+
+      const allMatch = finalResult[0] === finalResult[1] && finalResult[1] === finalResult[2];
+      const twoMatch = finalResult[0] === finalResult[1] || finalResult[1] === finalResult[2] || finalResult[0] === finalResult[2];
+
+      let baseWin = 0;
+
+      if (allMatch) {
+        baseWin = selectedBet * 10; // Big win for 3 matches
+      } else if (twoMatch) {
+        baseWin = selectedBet * 2;  // Smaller win for 2 matches
+      }
+
+      if (multiplierActive) {
+        baseWin *= 2;
+      }
+
+      if (baseWin > 0) {
         winSound.currentTime = 0;
         winSound.play();
+        document.getElementById('result').textContent = `You won ${baseWin} tokens!`;
       } else {
-        document.getElementById('result').textContent = 'Try again!';
         loseSound.currentTime = 0;
         loseSound.play();
+        document.getElementById('result').textContent = 'No win, try again!';
       }
-    }, 3200);
+    }, 3000); // wait for animation to finish
   }
 
   function toggleMusic() {
     const music = document.getElementById('backgroundMusic');
     const toggleBtn = document.getElementById('musicToggle');
-    if(music.paused){
+    if (music.paused) {
       music.play();
       toggleBtn.textContent = 'Pause Music';
     } else {
@@ -290,7 +290,7 @@
 </script>
 
 <footer>
-  SOBX Slots &copy; 2025 - Built by Reynolds Painting & Resurfacing LLC - <a href="mailto:azreynoldspaintingllc@gmail.com">Contact</a>
+  SOBX Slots - Developed by You. &nbsp; <a href="mailto:youremail@example.com">Contact</a>
 </footer>
 
 </body>
