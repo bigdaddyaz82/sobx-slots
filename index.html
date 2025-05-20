@@ -10,6 +10,8 @@
     text-align: center;
     background-color: #111;
     color: #fff;
+    margin: 0;
+    padding-bottom: 80px; /* space for footer */
   }
   h1 {
     margin-top: 30px;
@@ -32,6 +34,7 @@
     align-items: center;
     background-color: #333;
     border-radius: 10px;
+    user-select: none;
   }
   .buttons-row {
     margin-top: 30px;
@@ -66,6 +69,7 @@
     margin-top: 25px;
     font-size: 1.3rem;
     min-height: 1.5em;
+    user-select: none;
   }
   input[type="text"] {
     padding: 10px;
@@ -81,6 +85,23 @@
     color: #fff;
     border-radius: 5px;
   }
+  footer {
+    margin-top: 50px;
+    padding: 15px;
+    background-color: #222;
+    color: #fff;
+    font-size: 0.9rem;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    left: 0;
+  }
+  footer a {
+    color: #28a745;
+    text-decoration: underline;
+  }
 </style>
 </head>
 <body>
@@ -94,7 +115,7 @@
 </div>
 
 <div>
-  <input type="text" id="wallet" placeholder="Enter your wallet address" />
+  <input type="text" id="wallet" placeholder="Enter your wallet address" autocomplete="off" />
   <br />
   <button onclick="connectWallet()">Connect Wallet</button>
 </div>
@@ -140,6 +161,11 @@
   let selectedBet = 1;
   let multiplierActive = false;
   let spinTimeouts = [];
+
+  // Initialize bet button selection on page load
+  window.onload = () => {
+    selectBet(selectedBet);
+  };
 
   function selectBet(amount) {
     selectedBet = amount;
@@ -222,31 +248,4 @@
     const winSound = document.getElementById('winSound');
     const loseSound = document.getElementById('loseSound');
 
-    spinSound.currentTime = 0;
-    spinSound.play();
-
-    document.getElementById('result').textContent = 'Spinning...';
-
-    // Calculate bet amount (base bet * 2 if multiplier active)
-    let betAmount = selectedBet;
-    if(multiplierActive){
-      betAmount = betAmount * 2;
-    }
-
-    // Generate random result symbols (3 symbols)
-    let result = [];
-    for(let i = 0; i < 3; i++) {
-      result.push(getRandomSymbol());
-    }
-
-    // 20% chance player wins with 3 matching symbols, else lose
-    const playerWins = Math.random() < 0.2;
-
-    if(playerWins){
-      const winSymbol = symbols[Math.floor(Math.random() *
-
-       <footer style="margin-top: 50px; padding: 15px; background-color: #222; color: #fff; font-size: 0.9rem; text-align: center; font-family: Arial, sans-serif;">
-  &copy; 2025 | 
-  <a href="https://github.com/bigdaddyaz82" target="_blank" style="color: #28a745; text-decoration: underline;">GitHub: bigdaddyaz82</a> | 
-  Sponsored by <strong>Reynolds Painting and Resurfacing LLC</strong>
-</footer>
+    spinSound.currentTime =
