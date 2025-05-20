@@ -1,155 +1,364 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SOBEX Slot Machine™</title>
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #000;
-      color: #fff;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-
-    h1 {
-      font-size: 3em;
-      background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 2px 2px 4px #fff;
-      margin-top: 30px;
-    }
-
-    .slot-machine {
-      margin: 40px auto;
-      width: 300px;
-      padding: 20px;
-      background-color: #222;
-      border-radius: 20px;
-      box-shadow: 0 0 20px #ff0;
-    }
-
-    .reels {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-
-    .reel {
-      width: 60px;
-      height: 60px;
-      margin: 0 10px;
-      background-color: #000;
-      border: 2px solid #fff;
-      font-size: 2em;
-      line-height: 60px;
-      border-radius: 10px;
-    }
-
-    .button {
-      padding: 10px 20px;
-      font-size: 1.5em;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin: 10px;
-    }
-
-    #spin {
-      background-color: red;
-      color: white;
-      width: 120px;
-      height: 60px;
-      font-size: 1.8em;
-    }
-
-    #connectWallet {
-      background-color: #555;
-      color: white;
-    }
-
-    .message {
-      margin-top: 20px;
-      font-size: 1.2em;
-    }
-
-    footer {
-      margin-top: 60px;
-      padding: 20px;
-      background-color: #111;
-      font-size: 0.9em;
-    }
-
-    footer a {
-      color: #0af;
-      text-decoration: none;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SOBX Slot Machine</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #111;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 30px 15px 0;
+    margin: 0;
+  }
+  .container {
+    background-color: #222;
+    padding: 25px 30px 40px;
+    border-radius: 15px;
+    width: 360px;
+    box-sizing: border-box;
+    text-align: center;
+    box-shadow: 0 0 20px #28a745;
+    margin: 0 auto;
+    flex-grow: 1;
+  }
+  h1 {
+    margin: 0 0 20px 0;
+    font-size: 3.2rem;
+    font-weight: 900;
+    color: #00ff99;
+    background: repeating-linear-gradient(
+      45deg,
+      #00ff99,
+      #00ff99 10px,
+      #007f4f 10px,
+      #007f4f 20px
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow:
+      0 0 8px #00ff99,
+      0 0 15px #00ff99,
+      0 0 25px #00ff99,
+      0 0 40px #00ff99,
+      0 0 60px #00ff99;
+    letter-spacing: 2px;
+    user-select: none;
+  }
+  #walletSection {
+    margin-bottom: 25px;
+  }
+  #wallet {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: none;
+    box-sizing: border-box;
+  }
+  #connectBtn {
+    margin-top: 12px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: none;
+    background-color: #28a745;
+    color: #fff;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.2s;
+  }
+  #connectBtn:hover {
+    background-color: #218838;
+  }
+  .slot-machine {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+  .symbol {
+    width: 110px;
+    height: 110px;
+    border: 4px solid #fff;
+    margin: 0 10px;
+    font-size: 4rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #333;
+    border-radius: 12px;
+    user-select: none;
+  }
+  .buttons-row {
+    margin-top: 10px;
+  }
+  button.bet-btn {
+    padding: 12px 22px;
+    font-size: 1rem;
+    margin: 10px 6px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background-color: #28a745;
+    color: #fff;
+    transition: background-color 0.2s;
+  }
+  button.bet-btn:hover {
+    background-color: #218838;
+  }
+  button.bet-btn.selected {
+    background-color: #ffc107;
+    color: #111;
+    font-weight: bold;
+  }
+  #multiplierBtn {
+    background-color: #28a745;
+  }
+  #multiplierBtn.selected {
+    background-color: #218838;
+    font-weight: bold;
+  }
+  #spinBtn {
+    margin-top: 20px;
+    padding: 18px 50px;
+    font-size: 1.6rem;
+    border-radius: 12px;
+    border: none;
+    background-color: #ff0000;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  #spinBtn:hover {
+    background-color: #cc0000;
+  }
+  #result {
+    margin-top: 30px;
+    min-height: 1.5em;
+    font-size: 1.3rem;
+  }
+  #walletMessage {
+    margin-top: 8px;
+    color: #f39c12;
+    font-size: 0.9rem;
+    min-height: 1.2em;
+  }
+  footer {
+    width: 100%;
+    max-width: 360px;
+    margin: 20px auto 0;
+    padding: 15px 20px;
+    background: #222;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 0 15px #28a745;
+  }
+  #dailyRewardsBtn {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  #dailyRewardsBtn:hover {
+    background-color: #218838;
+  }
+  #dailyRewardsStatus {
+    margin-top: 12px;
+    font-size: 1rem;
+    min-height: 1.2em;
+    color: #ffc107;
+  }
+</style>
 </head>
 <body>
-  <h1>SOBEX Slot Machine™</h1>
 
-  <div class="slot-machine">
-    <div class="reels">
-      <div class="reel" id="reel1">?</div>
-      <div class="reel" id="reel2">?</div>
-      <div class="reel" id="reel3">?</div>
-    </div>
-    <button id="spin" class="button">SPIN</button>
-    <button id="connectWallet" class="button">Connect Wallet</button>
-    <div class="message" id="message"></div>
+<div class="container">
+  <h1>SOBX Slot Machine</h1>
+
+  <div id="walletSection">
+    <input type="text" id="wallet" placeholder="Enter your wallet address" autocomplete="off" />
+    <button id="connectBtn">Connect Wallet</button>
+    <div id="walletMessage"></div>
   </div>
 
-  <footer>
-    Created by <strong>BigDaddyAZ82</strong><br>
-    Sponsored by <strong>Reynolds Painting and Resurfacing LLC</strong><br>
-    <a href="https://www.facebook.com/ReynoldsPaintingandResurfacingLLC" target="_blank">Facebook Page</a> |
-    <a href="https://azreynoldspaintingllc.com" target="_blank">Company Website</a><br>
-    &copy; 2025 SOBEX™. All Rights Reserved.
-  </footer>
+  <div class="slot-machine">
+    <div class="symbol" id="symbol1">?</div>
+    <div class="symbol" id="symbol2">?</div>
+    <div class="symbol" id="symbol3">?</div>
+  </div>
 
-  <script>
-    const symbols = ['🍒', '🔔', '7️⃣', '🍋', '⭐', '💎', 'BAR', '💰', '🎰', '🍀', '🍇', '🍓', '👑'];
-    const reelElements = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')];
-    const messageEl = document.getElementById('message');
+  <div class="buttons-row">
+    <button class="bet-btn" id="bet1Btn">Bet 1</button>
+    <button class="bet-btn" id="bet5Btn">Bet 5</button>
+    <button class="bet-btn" id="bet10Btn">Bet 10</button>
+    <button class="bet-btn" id="multiplierBtn">×2</button>
+  </div>
 
-    document.getElementById('spin').addEventListener('click', () => {
-      const results = reelElements.map(reel => {
-        const symbol = symbols[Math.floor(Math.random() * symbols.length)];
-        reel.textContent = symbol;
-        return symbol;
-      });
+  <button id="spinBtn">Spin</button>
 
-      if (results[0] === results[1] && results[1] === results[2]) {
-        messageEl.textContent = `Jackpot! You win SOBEX tokens!`;
-        messageEl.style.color = 'lime';
-      } else if (results[0] === results[1] || results[1] === results[2] || results[0] === results[2]) {
-        messageEl.textContent = `Matched two! You get your bet back.`;
-        messageEl.style.color = 'gold';
-      } else {
-        messageEl.textContent = `No match. Try again!`;
-        messageEl.style.color = 'red';
+  <div id="result"></div>
+</div>
+
+<footer>
+  <button id="dailyRewardsBtn">Check Daily Rewards</button>
+  <div id="dailyRewardsStatus"></div>
+</footer>
+
+<script>
+  const symbols = ['cherry', 'lemon', 'orange', 'seven', 'bar', 'grape', 'diamond', 'skull', 'apple', 'parrot', 'horseshoe', 'clover', 'star'];
+  const emojiMap = {
+    cherry: '🍒',
+    lemon: '🍋',
+    orange: '🍊',
+    seven: '7️⃣',
+    bar: '🍫',
+    grape: '🍇',
+    diamond: '💎',
+    skull: '💀',
+    apple: '🍎',
+    parrot: '🦜',
+    horseshoe: '🐎',
+    clover: '🍀',
+    star: '⭐️'
+  };
+
+  let selectedBet = 1;
+  let multiplierActive = false;
+  let spinTimeouts = [];
+
+  function selectBet(amount) {
+    selectedBet = amount;
+    document.getElementById('bet1Btn').classList.remove('selected');
+    document.getElementById('bet5Btn').classList.remove('selected');
+    document.getElementById('bet10Btn').classList.remove('selected');
+    document.getElementById('bet' + amount + 'Btn').classList.add('selected');
+  }
+
+  function toggleMultiplier() {
+    multiplierActive = !multiplierActive;
+    const btn = document.getElementById('multiplierBtn');
+    btn.classList.toggle('selected', multiplierActive);
+  }
+
+  document.getElementById('connectBtn').addEventListener('click', () => {
+    const walletInput = document.getElementById('wallet');
+    const walletMessage = document.getElementById('walletMessage');
+    walletMessage.textContent = '';
+    if (window.ethereum) {
+      window.ethereum.request({ method: 'eth_requestAccounts' })
+        .then(accounts => {
+          walletInput.value = accounts[0];
+          walletMessage.textContent = 'Wallet connected.';
+          walletMessage.style.color = '#28a745';
+        })
+        .catch(() => {
+          walletMessage.textContent = 'Failed to connect wallet.';
+          walletMessage.style.color = '#f44336';
+        });
+    } else {
+      walletMessage.textContent = 'MetaMask or compatible wallet not detected.';
+      walletMessage.style.color = '#f44336';
+    }
+  });
+
+  document.getElementById('bet1Btn').addEventListener('click', () => selectBet(1));
+  document.getElementById('bet5Btn').addEventListener('click', () => selectBet(5));
+  document.getElementById('bet10Btn').addEventListener('click', () => selectBet(10));
+  document.getElementById('multiplierBtn').addEventListener('click', toggleMultiplier);
+
+  function spinSlots() {
+    // Clear any ongoing timeouts
+    spinTimeouts.forEach(timeout => clearTimeout(timeout));
+    spinTimeouts = [];
+    document.getElementById('result').textContent = '';
+    
+    // Spin animation: update symbols several times, then settle
+    const spinDuration = 1500; // 1.5 seconds total
+    const spinInterval = 100;  // interval between symbol changes
+    const totalSpins = spinDuration / spinInterval;
+
+    let currentSpin = 0;
+
+    const symbolElements = [
+      document.getElementById('symbol1'),
+      document.getElementById('symbol2'),
+      document.getElementById('symbol3')
+    ];
+
+    // Disable spin button during spin
+    const spinBtn = document.getElementById('spinBtn');
+    spinBtn.disabled = true;
+    spinBtn.style.cursor = 'not-allowed';
+
+    function spinStep() {
+      currentSpin++;
+      for (let i = 0; i < 3; i++) {
+        const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+        symbolElements[i].textContent = emojiMap[randomSymbol];
+        symbolElements[i].dataset.symbol = randomSymbol;
       }
-    });
-
-    async function connectWallet() {
-      if (window.ethereum) {
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          const account = accounts[0];
-          alert(`Connected wallet: ${account}`);
-        } catch (error) {
-          console.error('User rejected wallet connection');
-        }
+      if (currentSpin < totalSpins) {
+        spinTimeouts.push(setTimeout(spinStep, spinInterval));
       } else {
-        alert('MetaMask is not installed. Please install it to use this feature.');
+        // Spin ended, determine result
+        evaluateResult();
+        spinBtn.disabled = false;
+        spinBtn.style.cursor = 'pointer';
       }
     }
 
-    document.getElementById('connectWallet').addEventListener('click', connectWallet);
-  </script>
-</body>
-</html>
+    spinStep();
+  }
+
+  function evaluateResult() {
+    const s1 = document.getElementById('symbol1').dataset.symbol;
+    const s2 = document.getElementById('symbol2').dataset.symbol;
+    const s3 = document.getElementById('symbol3').dataset.symbol;
+
+    let winnings = 0;
+    const betAmount = selectedBet;
+    const mult = multiplierActive ? 2 : 1;
+
+    // Basic example: 3 matching symbols = 10x bet * multiplier
+    // 2 matching symbols = 2x bet * multiplier
+    // Otherwise 0
+    if (s1 === s2 && s2 === s3) {
+      winnings = betAmount * 10 * mult;
+    } else if (s1 === s2 || s2 === s3 || s1 === s3) {
+      winnings = betAmount * 2 * mult;
+    }
+
+    const resultDiv = document.getElementById('result');
+    if (winnings > 0) {
+      resultDiv.textContent = `You won ${winnings} SOBX tokens!`;
+      resultDiv.style.color = '#00ff99';
+    } else {
+      resultDiv.textContent = 'No win, try again!';
+      resultDiv.style.color = '#f44336';
+    }
+  }
+
+  document.getElementById('spinBtn').addEventListener('click', () => {
+    const walletAddress = document.getElementById('wallet').value.trim();
+    const walletMessage = document.getElementById('walletMessage');
+    if (!walletAddress) {
+      walletMessage.textContent = 'Please connect or enter your wallet address first.';
+      walletMessage.style.color = '#f44336';
+      return;
+    }
+    walletMessage.textContent = '';
+    spinSlots();
+  });
+
+  // Daily Rewards button - simple demo logic (once every 24h)
+  document.getElementById('dailyRewardsBtn').addEventListener('click', () => {
+    const lastClaim = localStorage.getItem('sobxLastClaim');
+    const now = Date.now
