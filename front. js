@@ -1,61 +1,37 @@
-<script>
-const sobexTokenAddress = "0x99c76e2311ebe008c59226b826c2b96e39e9428b";
-const sobexAbi = [
-  "function transfer(address to, uint256 amount) public returns (bool)",
-  "function decimals() view returns (uint8)"
-];
+document.addEventListener('DOMContentLoaded', () => {
+  const connectButton = document.getElementById('connectButton');
 
-let provider, signer, userAddress;
+  connectButton.addEventListener('click', async () => {
+    if (typeof window.ethereum !== 'undefined') {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const walletAddress = accounts[0];
 
-// Connect Wallet
-document.getElementById("connectWallet").onclick = async () => {
-  if (window.ethereum) {
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    signer = provider.getSigner();
-    userAddress = await signer.getAddress();
-    document.getElementById("walletAddress").innerText = `Connected: ${userAddress}`;
-  } else {
-    alert("MetaMask not detected!");
-  }
-};
+        // Get selected token type and badge (NEW)
+        const tokenType = document.querySelector('input[name="tokenType"]:checked')?.value || 'Apple Conyer Coin';
+        const badgeType = document.querySelector('input[name="badgeType"]:checked')?.value || 'Adge Badge';
 
-// Spin Button Logic
-document.getElementById("spinButton").addEventListener("click", async () => {
-  if (!userAddress) {
-    alert("Connect your wallet first!");
-    return;
-  }
+        // Update DOM
+        document.getElementById('walletAddress').textContent = `Connected to wallet: ${walletAddress}`;
+        document.getElementById('rewardMessage').textContent = `You've been awarded 10 ${tokenType} and 5 ${badgeType}!`;
 
-  try {
-    const response = await fetch('/api/spin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user: userAddress }) // Sending user wallet to backend
-    });
+        // Send to backend
+        const response = await fetch('/connect-wallet', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ walletAddress, tokenType, badgeType }),
+        });
 
-    if (!response.ok) throw new Error("Spin failed!");
-
-    const data = await response.json();
-
-    document.getElementById("spinResult").textContent = data.result.join(" | ");
-
-    const isWin = data.result[0] === data.result[1] && data.result[1] === data.result[2];
-    if (isWin) {
-      const sobexContract = new ethers.Contract(sobexTokenAddress, sobexAbi, signer);
-      const decimals = await sobexContract.decimals();
-      const rewardAmount = ethers.utils.parseUnits("10", decimals);
-
-      const tx = await sobexContract.transfer(userAddress, rewardAmount);
-      await tx.wait();
-      alert("Congrats! You won 10 SOBEX!");
+        const data = await response.json();
+        console.log(data.message);
+      } catch (err) {
+        console.error('Wallet connection failed:', err);
+        alert('Failed to connect wallet.');
+      }
     } else {
-      alert("No match. Try again!");
+      alert('MetaMask is not installed. Please install it to use this feature.');
     }
-
-  } catch (error) {
-    console.error(error);
-    alert("Spin error: " + error.message);
-  }
+  });
 });
-</script>
