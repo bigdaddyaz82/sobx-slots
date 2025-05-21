@@ -8,74 +8,231 @@
     body {
       background: #121212;
       color: #eee;
-      font-family: Arial, sans-serif;
+      font-family: 'Courier New', Courier, monospace;
       text-align: center;
       padding: 20px;
+      user-select: none;
     }
     #slot-machine {
       background: #222;
-      border: 4px solid #f39c12;
-      border-radius: 15px;
+      border: 6px solid #f39c12;
+      border-radius: 20px;
       display: inline-block;
-      padding: 25px 40px 40px 40px;
-      box-shadow: 0 0 15px #f39c12aa;
-      user-select: none;
+      padding: 40px 60px 60px 60px;
+      box-shadow: 0 0 20px #f39c12cc;
+      position: relative;
+      width: 420px;
+      box-sizing: border-box;
     }
     h1 {
-      margin-bottom: 20px;
+      margin-bottom: 25px;
+      font-weight: 900;
+      letter-spacing: 4px;
+      text-shadow: 0 0 10px #f39c12bb;
     }
     #slots {
       display: flex;
       justify-content: center;
-      margin: 20px 0;
+      margin: 30px 0 40px 0;
     }
     .slot-wheel {
-      width: 80px;
-      height: 80px;
-      margin: 0 10px;
-      font-size: 60px;
-      line-height: 80px;
-      border: 3px solid #f39c12;
-      border-radius: 12px;
+      width: 90px;
+      height: 90px;
+      margin: 0 15px;
+      font-size: 70px;
+      line-height: 90px;
+      border: 5px solid #f39c12;
+      border-radius: 18px;
       background: #111;
-      font-weight: bold;
+      font-weight: 900;
       color: #f39c12;
-      text-shadow: 0 0 10px #f39c12bb;
+      text-shadow: 0 0 15px #f39c12dd;
+      box-shadow: inset 0 0 12px #f39c12aa;
+      transition: transform 0.3s ease;
     }
-    #bet-buttons, #actions {
+    #bet-buttons {
       margin-top: 15px;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
     }
-    #bet-buttons button, #actions button {
-      margin: 0 6px;
-      padding: 10px 24px;
-      font-size: 18px;
-      font-weight: bold;
+    #bet-buttons button {
+      padding: 12px 30px;
+      font-size: 22px;
+      font-weight: 900;
       cursor: pointer;
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       background: #f39c12;
       color: #222;
-      transition: background 0.3s ease;
+      box-shadow: 0 0 12px #f39c12aa;
+      transition: background 0.3s ease, transform 0.15s ease;
+      min-width: 120px;
+      user-select: none;
     }
-    #bet-buttons button.selected, #actions button.selected {
+    #bet-buttons button:hover {
       background: #e67e22;
-      box-shadow: 0 0 12px #e67e22aa;
+      transform: scale(1.1);
+    }
+    #bet-buttons button.selected {
+      background: #e67e22;
+      box-shadow: 0 0 18px #e67e22dd;
+      transform: scale(1.15);
+    }
+    #actions {
+      margin-top: 15px;
+      margin-bottom: 40px;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+    }
+    #actions button {
+      padding: 12px 30px;
+      font-size: 22px;
+      font-weight: 900;
+      cursor: pointer;
+      border: none;
+      border-radius: 12px;
+      background: #f39c12;
+      color: #222;
+      box-shadow: 0 0 12px #f39c12aa;
+      transition: background 0.3s ease, transform 0.15s ease;
+      min-width: 160px;
+      user-select: none;
+    }
+    #actions button:hover {
+      background: #e67e22;
+      transform: scale(1.1);
+    }
+    #actions button.selected {
+      background: #e67e22;
+      box-shadow: 0 0 18px #e67e22dd;
+      transform: scale(1.15);
+    }
+    #spin-button {
+      margin: 0 auto;
+      padding: 20px 0;
+      font-size: 40px;
+      font-weight: 900;
+      cursor: pointer;
+      border: none;
+      border-radius: 25px;
+      background: #e74c3c; /* bright red */
+      color: #fff;
+      box-shadow: 0 0 25px #e74c3ccc;
+      width: 280px;
+      user-select: none;
+      transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.15s ease;
+      display: block;
+    }
+    #spin-button:hover:not(:disabled) {
+      background: #c0392b;
+      box-shadow: 0 0 35px #c0392bcc;
+      transform: scale(1.05);
     }
     #spin-button:disabled {
       background: #555 !important;
       cursor: not-allowed;
       box-shadow: none !important;
+      transform: none !important;
     }
     #result {
-      margin-top: 25px;
-      font-size: 22px;
-      min-height: 40px;
-      font-weight: bold;
+      margin-top: 30px;
+      font-size: 26px;
+      min-height: 48px;
+      font-weight: 900;
       color: #f1c40f;
-      text-shadow: 0 0 8px #f1c40faa;
+      text-shadow: 0 0 12px #f1c40faa;
+      min-height: 60px;
+      user-select: none;
     }
     #wallet-section {
-      margin-bottom: 30px;
+      margin-bottom: 35px;
+    }
+
+    /* Lever styling */
+    #lever-container {
+      position: absolute;
+      top: 30px;
+      right: -70px;
+      width: 60px;
+      height: 220px;
+      background: #6e4b1a;
+      border-radius: 20px 20px 50px 50px;
+      box-shadow: inset 0 0 8px #543e11;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 20px;
+      transition: transform 0.2s ease;
+    }
+    #lever-handle {
+      width: 24px;
+      height: 140px;
+      background: linear-gradient(135deg, #c67c0a, #9d6100);
+      border-radius: 12px;
+      box-shadow: 0 0 10px #bb7a00 inset;
+      position: relative;
+      transition: transform 0.2s ease;
+    }
+    #lever-knob {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 54px;
+      height: 54px;
+      background: radial-gradient(circle at center, #f39c12, #c67c0a);
+      border-radius: 50%;
+      box-shadow: 0 0 15px #f39c12cc;
+      border: 3px solid #f1c40f;
+      cursor: pointer;
+      user-select: none;
+      transition: box-shadow 0.2s ease;
+    }
+    #lever-container:active #lever-handle {
+      transform: rotate(30deg) translateX(10px);
+      transform-origin: top center;
+    }
+    #lever-container:active #lever-knob {
+      box-shadow: 0 0 25px #f39c12ff;
+    }
+
+    /* Blinking red light on top */
+    #red-light {
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 40px;
+      background: #880000;
+      border-radius: 50%;
+      box-shadow: 0 0 15px #880000bb inset;
+      transition: box-shadow 0.3s ease;
+      user-select: none;
+    }
+    #red-light.blink {
+      animation: blinkRed 1s infinite;
+      box-shadow:
+        0 0 20px #ff0000,
+        0 0 40px #ff0000,
+        0 0 60px #ff0000;
+    }
+    @keyframes blinkRed {
+      0%, 100% { box-shadow:
+        0 0 20px #ff0000,
+        0 0 40px #ff0000,
+        0 0 60px #ff0000;
+      }
+      50% { box-shadow:
+        0 0 6px #ff0000,
+        0 0 15px #ff0000,
+        0 0 20px #ff0000;
+      }
     }
   </style>
 </head>
@@ -87,188 +244,6 @@
   </div>
 
   <div id="slot-machine">
-    <h1>Sobex Slots</h1>
+    <div id="red-light"></div>
 
-    <div id="slots">
-      <div class="slot-wheel" id="wheel1">?</div>
-      <div class="slot-wheel" id="wheel2">?</div>
-      <div class="slot-wheel" id="wheel3">?</div>
-    </div>
-
-    <div id="bet-buttons">
-      Bet: 
-      <button data-bet="1" class="selected">1 Sobex</button>
-      <button data-bet="5">5 Sobex</button>
-      <button data-bet="10">10 Sobex</button>
-    </div>
-
-    <div id="actions" style="margin-top:10px;">
-      <button id="doubleBetBtn">2x Bet: OFF</button>
-    </div>
-
-    <button id="spin-button" disabled>Spin</button>
-
-    <div id="result"></div>
-  </div>
-
-<script>
-  // Numbers 0-9 as slot symbols
-  const symbols = ['0','1','2','3','4','5','6','7','8','9'];
-
-  // Elements
-  const betButtons = document.querySelectorAll('#bet-buttons button');
-  const spinButton = document.getElementById('spin-button');
-  const resultDiv = document.getElementById('result');
-  const wheels = [
-    document.getElementById('wheel1'),
-    document.getElementById('wheel2'),
-    document.getElementById('wheel3')
-  ];
-  const doubleBetBtn = document.getElementById('doubleBetBtn');
-
-  // Wallet connect
-  const connectWalletBtn = document.getElementById('connectWalletBtn');
-  const walletStatus = document.getElementById('walletStatus');
-
-  // State
-  let selectedBet = 1;
-  let doubleBet = false;
-  let spinning = false;
-
-  // Weekend toggle key & helper
-  const WEEKEND_BONUS_KEY = 'sobexWeekendBonusToggle';
-
-  function isWeekend() {
-    const today = new Date();
-    const day = today.getDay(); // 0=Sunday,6=Saturday
-    return day === 0 || day === 6;
-  }
-
-  function getWeekendToggle() {
-    const val = localStorage.getItem(WEEKEND_BONUS_KEY);
-    return val === 'true';
-  }
-  function toggleWeekend() {
-    const current = getWeekendToggle();
-    localStorage.setItem(WEEKEND_BONUS_KEY, !current);
-  }
-
-  // Handle bet selection
-  betButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      selectedBet = parseInt(btn.getAttribute('data-bet'));
-      betButtons.forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      spinButton.disabled = false;
-      resultDiv.textContent = '';
-    });
-  });
-
-  // Double bet toggle
-  doubleBetBtn.addEventListener('click', () => {
-    doubleBet = !doubleBet;
-    doubleBetBtn.textContent = doubleBet ? '2x Bet: ON' : '2x Bet: OFF';
-    doubleBetBtn.classList.toggle('selected', doubleBet);
-    resultDiv.textContent = '';
-  });
-
-  // Spin animation
-  function spinAnimation(duration = 2000) {
-    return new Promise(resolve => {
-      const start = Date.now();
-      const interval = setInterval(() => {
-        wheels.forEach(wheel => {
-          wheel.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-        });
-        if (Date.now() - start >= duration) {
-          clearInterval(interval);
-          resolve();
-        }
-      }, 70);
-    });
-  }
-
-  // Backend spin simulation with your payout rules
-  function backendSpin(bet) {
-    // Randomly pick symbols for 3 wheels
-    function randomSymbol() {
-      return symbols[Math.floor(Math.random() * symbols.length)];
-    }
-
-    const wheelsResult = [randomSymbol(), randomSymbol(), randomSymbol()];
-
-    // Payout calculation according to rules:
-    // - 3 match = jackpot payout = bet * 20 * (2 if doubleBet)
-    // - 2 match = win bet back normally (draw)
-    //    * on weekends, toggle break-even / +1 Sobex bonus alternates (only for 2 matches)
-    // - else lose
-
-    // Count matches
-    const counts = {};
-    wheelsResult.forEach(s => counts[s] = (counts[s] || 0) + 1);
-
-    // Find max count
-    const maxMatchCount = Math.max(...Object.values(counts));
-
-    let payout = 0;
-    let message = '';
-
-    if (maxMatchCount === 3) {
-      // Jackpot
-      payout = bet * 20;
-      if (doubleBet) payout *= 2;
-      message = `Jackpot! You won ${payout} Sobex!`;
-    } else if (maxMatchCount === 2) {
-      // Two match draw rules
-      if (isWeekend()) {
-        // Weekend toggle logic for 2-match draws
-        const toggle = getWeekendToggle();
-        if (toggle) {
-          payout = bet + 1; // Win bet back + 1 Sobex bonus
-          message = `Nice! Two match on weekend, plus 1 Sobex bonus! You won ${payout} Sobex!`;
-        } else {
-          payout = bet; // Just break even
-          message = `Two match on weekend, you break even with ${payout} Sobex.`;
-        }
-        toggleWeekend();
-      } else {
-        // Weekday: just break even
-        payout = bet;
-        message = `Two match! You break even with ${payout} Sobex.`;
-      }
-      if (doubleBet) payout *= 2; // Double bet doubles payout
-    } else {
-      // Lose
-      payout = 0;
-      message = 'No luck this time, try again!';
-    }
-
-    return { wheelsResult, payout, message };
-  }
-
-  // Spin button handler
-  spinButton.addEventListener('click', async () => {
-    if (spinning) return;
-    spinning = true;
-    spinButton.disabled = true;
-    resultDiv.textContent = 'Spinning... good luck!';
-
-    await spinAnimation();
-
-    const betAmount = doubleBet ? selectedBet * 2 : selectedBet;
-    const { wheelsResult, payout, message } = backendSpin(betAmount);
-
-    wheels.forEach((wheel, i) => {
-      wheel.textContent = wheelsResult[i];
-    });
-
-    resultDiv.textContent = message;
-
-    spinButton.disabled = false;
-    spinning = false;
-  });
-
-  // Wallet connect function
-  async function connectWallet() {
-    if (typeof window.ethereum === 'undefined') {
-      walletStatus.text
+    <h1
