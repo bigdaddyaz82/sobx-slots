@@ -6,172 +6,346 @@
   <title>SOBEX Slots - Old School Style</title>
   <style>
     body {
-      background: #222;
-      font-family: 'Courier New', Courier, monospace;
+      background: #1a1a1a; /* Darker, classic casino feel */
+      font-family: 'Arial Black', Gadget, sans-serif; /* Chunkier, retro font */
       color: #fff;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
+      justify-content: center; /* Center the whole machine */
+      align-items: flex-start; /* Align to top for potential height changes */
+      padding: 40px 20px;
       margin: 0;
+      min-height: 100vh;
+      box-sizing: border-box;
     }
-    .slot-machine {
-      position: relative;
-      width: 320px;
-      background: #444;
-      border: 5px solid #aaa;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 0 20px #f00 inset;
+
+    .slot-machine-container { /* NEW: Wrapper for machine and handle */
+      position: relative; /* For positioning handle */
+      display: flex; /* To align machine body and handle container if needed */
+      align-items: flex-start;
     }
-    .red-light {
+
+    .slot-machine-body {
+      position: relative; /* For positioning elements like top light inside */
+      width: 400px; /* Wider for a more substantial feel */
+      background: linear-gradient(to bottom, #7d7e7d 0%, #0e0e0e 100%); /* Metallic gradient */
+      border: 10px solid #333;
+      border-top-color: #555;
+      border-left-color: #555;
+      border-bottom-color: #222;
+      border-right-color: #222;
+      border-radius: 20px;
+      padding: 30px 25px 25px 25px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 0 15px rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      gap: 20px; /* Spacing between internal sections */
+    }
+
+    .top-light-container {
       position: absolute;
-      top: -20px;
+      top: -45px; /* Position above the machine body */
       left: 50%;
       transform: translateX(-50%);
-      width: 40px;
-      height: 40px;
-      background: red;
-      border-radius: 50%;
-      box-shadow: 0 0 15px 5px red;
-      opacity: 0.2;
-      transition: opacity 0.3s ease;
       z-index: 10;
     }
-    .red-light.active {
-      opacity: 1;
-      animation: blink 1s infinite;
+
+    #top-light { /* UPDATED: Was .red-light */
+      width: 70px;
+      height: 70px;
+      background-color: #cc3300; /* Off state - deeper red/orange */
+      border-radius: 50%;
+      border: 6px solid #222;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5), inset 0 0 15px rgba(255,100,50,0.3);
+      transition: background-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
     }
-    @keyframes blink {
-      0%, 100% {opacity: 1;}
-      50% {opacity: 0.2;}
+
+    #top-light.flashing { /* UPDATED: Animation for win */
+      animation: topLightFlash 0.4s infinite;
     }
-    #spinResult {
-      font-size: 2.2rem;
-      text-align: center;
-      margin: 10px 0 20px 0;
-      letter-spacing: 1.2rem;
-      font-weight: bold;
-      font-family: 'Courier New', Courier, monospace;
-      background-color: #111;
-      padding: 10px;
-      border-radius: 5px;
-      border: 2px solid #333;
+
+    @keyframes topLightFlash {
+        0%, 100% {
+            background-color: #ffdd00; /* Bright yellow */
+            box-shadow: 0 0 30px 15px rgba(255, 221, 0, 0.8), inset 0 0 10px rgba(255,255,255,0.5);
+        }
+        50% {
+            background-color: #ffaa00; /* Orange */
+            box-shadow: 0 0 20px 10px rgba(255, 170, 0, 0.6), inset 0 0 5px rgba(255,255,150,0.3);
+        }
     }
-    .buttons {
+
+    .paytable-area { /* NEW: Placeholder for paytable */
+        background: rgba(0,0,0,0.3);
+        border: 2px solid #555;
+        padding: 10px;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 0.9em;
+        color: #ffcc66;
+    }
+    .paytable-area h3 { margin: 0 0 5px 0; color: #fff;}
+    .paytable-area p { margin: 2px 0; }
+
+
+    .reels-container { /* UPDATED: Was #spinResult, now a container */
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 10px;
+      justify-content: space-around;
+      background-color: #111;
+      padding: 15px 10px;
+      border-radius: 10px;
+      border: 4px inset #000;
+      box-shadow: inset 0 0 10px #000;
     }
+
+    .reel { /* NEW: Individual reel style */
+      font-size: 3.5rem; /* Larger symbols */
+      font-weight: bold;
+      font-family: 'Lucida Console', Monaco, monospace; /* Monospaced for alignment */
+      color: #ffcc00; /* Gold-ish color for symbols */
+      background-color: #0a0a0a;
+      width: 90px; /* Fixed width for each reel "window" */
+      height: 70px; /* Fixed height */
+      line-height: 70px; /* Vertically center symbol */
+      text-align: center;
+      border: 2px solid #333;
+      border-radius: 5px;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.7);
+      overflow: hidden; /* Important for future spin animations */
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    }
+
+    .info-panel { /* NEW: For balance, bet, win */
+        display: flex;
+        justify-content: space-between;
+        background: rgba(0,0,0,0.4);
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 0.9em;
+        color: #eee;
+    }
+    .info-panel div {
+        flex: 1;
+        text-align: center;
+    }
+    #balance-display { color: #6f6; } /* Green for balance */
+    #win-display { color: #ffc107; font-weight: bold; } /* Yellow for win */
+
+
+    .controls-area { /* UPDATED: For wallet button and address */
+      display: flex;
+      flex-direction: column; /* Stack connect button and address */
+      align-items: center;
+      gap: 10px;
+    }
+
     #connectWallet {
-      background: #0077ff;
+      background: #007bff; /* Bootstrap blue */
       color: white;
-      border: none;
-      padding: 12px 18px;
-      font-size: 1rem;
+      border: 2px solid #0056b3;
+      padding: 10px 15px;
+      font-size: 0.9rem;
+      font-weight: bold;
       cursor: pointer;
       border-radius: 6px;
-      flex: 1;
-      margin-right: 10px;
-      transition: background 0.3s;
+      transition: background 0.3s, transform 0.1s;
+      box-shadow: 0 3px #0056b3;
+      width: 80%;
+      max-width: 200px;
     }
     #connectWallet:hover:not(:disabled) {
-      background: #005bb5;
+      background: #0069d9;
+    }
+    #connectWallet:active:not(:disabled) {
+        transform: translateY(1px);
+        box-shadow: 0 2px #0056b3;
     }
     #connectWallet:disabled {
         background: #555;
+        color: #aaa;
         cursor: not-allowed;
+        box-shadow: 0 3px #333;
     }
-    #spinButton {
-      background: #e00;
-      color: white;
-      border: none;
-      padding: 18px 28px;
-      font-size: 2rem;
-      font-weight: bold;
-      border-radius: 12px;
-      cursor: pointer;
-      flex: 1;
-      margin-left: 10px;
-      box-shadow: 0 0 15px #f00;
-      transition: background 0.3s, box-shadow 0.3s;
+
+    #walletAddress {
+      font-size: 0.8rem;
+      font-family: monospace;
+      min-height: 1.2rem;
+      text-align: center;
+      color: #6f6; /* Green for connected */
+      background-color: rgba(0,0,0,0.3);
+      padding: 5px 8px;
+      border-radius: 4px;
+      width: 100%;
+      box-sizing: border-box;
     }
-    #spinButton:hover:not(:disabled) {
-      background: #a00;
-      box-shadow: 0 0 25px #f33;
+
+    .bet-buttons-container { /* NEW */
+        display: flex;
+        justify-content: space-around;
+        gap: 10px;
     }
-    #spinButton:disabled {
-      background-color: #770000;
-      color: #aaa;
-      cursor: not-allowed;
-      box-shadow: none;
+    .bet-button {
+        padding: 12px 10px;
+        font-size: 1rem;
+        font-weight: bold;
+        color: white;
+        background-color: #d9534f; /* Reddish */
+        border: 2px solid #ac2925;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px #ac2925;
+        transition: background-color 0.2s, box-shadow 0.2s, transform 0.1s;
+        flex-grow: 1;
     }
-    .lever-container {
-      position: absolute;
-      top: 40px;
-      right: -70px;
-      width: 50px;
-      height: 150px;
+    .bet-button:hover:not(.active-bet) {
+        background-color: #c9302c;
+    }
+    .bet-button:active:not(.active-bet), .bet-button.active-bet {
+        background-color: #5cb85c; /* Green for active */
+        border-color: #3d8b3d;
+        box-shadow: 0 2px #3d8b3d;
+        transform: translateY(2px);
+    }
+    .bet-button.active-bet { /* Ensure active style persists */
+        background-color: #5cb85c;
+        border-color: #3d8b3d;
+        box-shadow: 0 4px #3d8b3d; /* Keep shadow full height */
+        transform: translateY(0); /* No press down unless clicked */
+    }
+    .bet-button.active-bet:active { /* Active and being pressed */
+        transform: translateY(2px);
+        box-shadow: 0 2px #3d8b3d;
+    }
+
+
+    #spinButton { /* Original spin button - we'll hide this and use the lever */
+      display: none; /* HIDE THE ORIGINAL SPIN BUTTON */
+    }
+
+    .lever-container { /* UPDATED: Styling and positioning */
+      /* position: absolute; No longer absolute, part of flex */
+      /* top: 100px;
+      right: -85px; */
+      margin-left: 15px; /* Space it from the machine body */
+      width: 60px; /* Wider base for handle */
+      height: 250px; /* Taller handle */
       cursor: pointer;
       user-select: none;
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding-top: 50px; /* Give space for rotation point */
+      transform-origin: center 30px; /* Adjust rotation origin */
+      transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Snappy animation */
     }
+
     .lever-arm {
-      background: #bbb;
-      width: 12px;
-      height: 100px;
-      border-radius: 8px;
-      box-shadow: inset 0 0 5px #666;
+      background: linear-gradient(to right, #c0c0c0, #808080, #c0c0c0); /* Chrome */
+      width: 20px; /* Thicker arm */
+      height: 150px; /* Longer arm */
+      border-radius: 10px;
+      box-shadow: inset 0 0 5px #555, 2px 2px 5px rgba(0,0,0,0.4);
       position: relative;
-      transition: transform 0.2s ease;
     }
+
     .lever-knob {
-      background: #c33;
-      width: 40px;
-      height: 40px;
+      background: radial-gradient(circle, #e06666, #cc0000); /* Deeper red */
+      width: 55px; /* Larger knob */
+      height: 55px;
       border-radius: 50%;
-      margin-top: -20px;
-      box-shadow: 0 0 8px #f00;
+      margin-top: -25px; /* Overlap arm */
+      box-shadow: 0 0 10px #c00, inset 0 0 8px rgba(255,150,150,0.7);
+      border: 3px solid #333;
     }
-    .lever-pulled {
-      transform: rotate(45deg);
-      transition: transform 0.2s ease;
+
+    .lever-pulled .lever-arm { /* Animate arm directly if needed, or container */
+      /* The container transform is better for this setup */
     }
-    #walletAddress {
-      margin-top: 15px;
-      font-size: 0.9rem;
-      font-family: monospace;
-      min-height: 1.3rem;
-      text-align: center;
-      color: #0f0; /* Green color for connected status */
-      padding: 5px;
-      background-color: #333;
-      border-radius: 4px;
+    .lever-container.pulled { /* Apply rotation to container */
+      transform: rotate(60deg);
     }
+
+    /* For reel spinning text effect */
+    .spinning-chars {
+        opacity: 0.5;
+        animation: charCycle 0.1s infinite linear;
+    }
+    @keyframes charCycle {
+        0% { content: "7"; }
+        14% { content: "B"; } /* BAR */
+        28% { content: "O"; } /* SOBX */
+        42% { content: "🍒"; }
+        57% { content: "🍋"; }
+        71% { content: "🔔"; }
+        85% { content: "💰"; }
+        100% { content: "7"; }
+    }
+
   </style>
 </head>
 <body>
 
-  <div class="slot-machine">
-    <div class="red-light" id="redLight"></div>
-    <div id="spinResult">- - -</div>
-    <div class="buttons">
-      <button id="connectWallet">Connect Wallet</button>
-      <button id="spinButton" disabled>SPIN</button> <!-- Initially disabled -->
+  <!-- NEW: Outer container for machine + handle -->
+  <div class="slot-machine-container">
+    <div class="slot-machine-body">
+      <div class="top-light-container">
+        <div id="top-light"></div> <!-- Was .red-light, ID changed to top-light -->
+      </div>
+
+      <!-- NEW: Paytable Area -->
+      <div class="paytable-area">
+        <h3>SOBEX PAYTABLE</h3>
+        <p>💰💰💰 = 50 x Bet</p>
+        <p>7️⃣7️⃣7️⃣ = 20 x Bet</p>
+        <p>💲💲💲 = 10 x Bet (SOBX Symbol)</p>
+        <p>🔔🔔🔔 = 5 x Bet</p>
+        <!-- Add more combinations as desired -->
+      </div>
+
+      <!-- UPDATED: spinResult is now reels-container with individual reels -->
+      <div id="reels-container" class="reels-container">
+        <div class="reel" id="reel1">-</div>
+        <div class="reel" id="reel2">-</div>
+        <div class="reel" id="reel3">-</div>
+      </div>
+
+      <!-- NEW: Info Panel -->
+      <div class="info-panel">
+        <div id="balance-display">Balance: --- SOBX</div>
+        <div id="current-bet-display">Bet: 1 SOBX</div>
+        <div id="win-display">Win: 0 SOBX</div>
+      </div>
+
+      <!-- UPDATED: controls-area for wallet connect and address -->
+      <div class="controls-area">
+        <button id="connectWallet">Connect Wallet</button>
+        <div id="walletAddress">Not Connected</div>
+      </div>
+      <!-- Original spinButton is still in HTML for JS lever to click, but hidden by CSS -->
+      <button id="spinButton" disabled>SPIN</button>
+
+      <!-- NEW: Bet Buttons -->
+      <div class="bet-buttons-container">
+        <button class="bet-button" data-bet="1">BET 1</button> <!-- Initial active class will be set by JS -->
+        <button class="bet-button" data-bet="5">BET 5</button>
+        <button class="bet-button" data-bet="20">BET 20</button>
+      </div>
     </div>
-    <div id="walletAddress">Not Connected</div> <!-- Initial message -->
+
+    <!-- Lever is now a sibling to slot-machine-body, positioned by flex on parent -->
     <div class="lever-container" id="lever" title="Pull lever to spin">
       <div class="lever-arm"></div>
       <div class="lever-knob"></div>
     </div>
   </div>
 
+
   <!-- Sounds -->
   <audio id="spinSound" src="https://actions.google.com/sounds/v1/casino/slot_machine_spin.ogg" preload="auto"></audio>
   <audio id="winSound" src="https://actions.google.com/sounds/v1/casino/slot_machine_win.ogg" preload="auto"></audio>
+  <audio id="betSound" src="https://actions.google.com/sounds/v1/coins/coin_drop.ogg" preload="auto"></audio> <!-- NEW: Bet sound -->
+  <audio id="leverSound" src="https://actions.google.com/sounds/v1/switches/mechanical_switch_on.ogg" preload="auto"></audio> <!-- NEW: Lever sound -->
+
 
   <!-- Ethers.js CDN -->
   <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
@@ -181,112 +355,228 @@
     const sobexTokenAddress = "0x99c76e2311ebe008c59226b826c2b96e39e9428b"; // Placeholder
     const sobexAbi = [
       "function transfer(address to, uint256 amount) public returns (bool)",
-      "function decimals() view returns (uint8)" // Make sure your token ABI includes this or adjust
+      "function decimals() view returns (uint8)",
+      "function balanceOf(address account) view returns (uint256)" // Added for balance check
     ];
 
     // Ethers.js objects and user address
     let provider, signer, userAddress;
 
+    // Game State
+    let currentBet = 1; // Default bet
+    let sobxBalance = 0; // Player's SOBEX balance
+    let isSpinning = false; // To prevent multiple spins / bet changes during spin
+
     // DOM Elements
     const connectWalletBtn = document.getElementById("connectWallet");
-    const spinButton = document.getElementById("spinButton");
-    const spinResultDisplay = document.getElementById("spinResult");
+    const spinButton = document.getElementById("spinButton"); // Still used by lever logic
+    // const spinResultDisplay = document.getElementById("spinResult"); // No longer a single display
+    const reel1Display = document.getElementById("reel1");
+    const reel2Display = document.getElementById("reel2");
+    const reel3Display = document.getElementById("reel3");
+
     const walletAddressDisplay = document.getElementById("walletAddress");
-    const redLight = document.getElementById("redLight");
+    const topLight = document.getElementById("top-light"); // Updated ID
     const spinSound = document.getElementById("spinSound");
     const winSound = document.getElementById("winSound");
+    const betSound = document.getElementById("betSound");
+    const leverSound = document.getElementById("leverSound");
+
     const lever = document.getElementById("lever");
-    const leverArm = lever.querySelector(".lever-arm");
+    // const leverArm = lever.querySelector(".lever-arm"); // No longer directly animating arm, but container
+
+    const balanceDisplay = document.getElementById("balance-display");
+    const currentBetDisplay = document.getElementById("current-bet-display");
+    const winDisplay = document.getElementById("win-display");
+    const betButtons = document.querySelectorAll(".bet-button");
+
+    // Symbols (simple version for now, backend drives actual result)
+    // These are just for potential client-side animation if you extend it
+    const symbols = ["💲", "7️⃣", "💰", "🔔", "🍋", "🍒", "BAR"];
+
+
+    // --- UI Update Functions ---
+    function updateBalanceDisplay() {
+      balanceDisplay.textContent = `Balance: ${parseFloat(ethers.utils.formatUnits(sobxBalance, currentTokenDecimals)).toFixed(2)} SOBX`;
+    }
+    function updateBetDisplay() {
+      currentBetDisplay.textContent = `Bet: ${currentBet} SOBX`;
+    }
+    function updateWinDisplay(amount) {
+      // Format amount if it's a BigNumber from ethers
+      const displayAmount = typeof amount === 'object' && amount._isBigNumber ? parseFloat(ethers.utils.formatUnits(amount, currentTokenDecimals)).toFixed(2) : amount;
+      winDisplay.textContent = `Win: ${displayAmount} SOBX`;
+      if (parseFloat(displayAmount) > 0) {
+        winDisplay.style.transform = 'scale(1.1)';
+        setTimeout(() => winDisplay.style.transform = 'scale(1)', 300);
+      }
+    }
+
+    let currentTokenDecimals = 18; // Default, fetch actual later
+
+    async function fetchUserBalance() {
+        if (!signer || !sobexTokenAddress) return;
+        try {
+            const sobexContract = new ethers.Contract(sobexTokenAddress, sobexAbi, signer);
+            currentTokenDecimals = await sobexContract.decimals(); // Fetch decimals
+            sobxBalance = await sobexContract.balanceOf(userAddress);
+            updateBalanceDisplay();
+        } catch (error) {
+            console.error("Error fetching SOBEX balance:", error);
+            balanceDisplay.textContent = "Balance: Error";
+        }
+    }
+
 
     // --- Connect Wallet Functionality ---
     connectWalletBtn.onclick = async () => {
+      if (isSpinning) return;
       console.log("Connect Wallet button clicked.");
 
       if (typeof window.ethereum !== 'undefined') {
         console.log("MetaMask (window.ethereum) detected.");
         try {
           provider = new ethers.providers.Web3Provider(window.ethereum);
-          console.log("Ethers provider initialized.");
-
-          await provider.send("eth_requestAccounts", []); // Request account access
-          console.log("Accounts requested from MetaMask.");
-
+          await provider.send("eth_requestAccounts", []);
           signer = provider.getSigner();
-          console.log("Signer obtained.");
-
           userAddress = await signer.getAddress();
-          console.log("User address obtained:", userAddress);
 
           walletAddressDisplay.innerText = `Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(userAddress.length - 4)}`;
           connectWalletBtn.innerText = "Connected";
           connectWalletBtn.disabled = true;
-          spinButton.disabled = false; // Enable spin button
+          spinButton.disabled = false; // Enable master spin capability
+          lever.style.cursor = 'pointer';
+
+          await fetchUserBalance(); // Fetch balance on connect
           console.log("UI updated for connected state. Spin button enabled.");
-
-          // Optional: Notify backend of connection (you'd need to implement this endpoint)
-          // fetch('/api/user-connected', {
-          //   method: 'POST',
-          //   headers: { 'Content-Type': 'application/json' },
-          //   body: JSON.stringify({ walletAddress: userAddress })
-          // }).then(res => res.json()).then(data => console.log("Backend notified:", data))
-          //   .catch(err => console.error("Error notifying backend:", err));
-
         } catch (err) {
           console.error("Wallet connection error:", err);
           walletAddressDisplay.innerText = "Connection Failed!";
-          walletAddressDisplay.style.color = "#f00"; // Red for error
-          if (err.code === 4001) { // User rejected the request
+          walletAddressDisplay.style.color = "#f00";
+          if (err.code === 4001) {
             alert("You rejected the connection request in MetaMask.");
           } else {
             alert("Wallet connection failed: " + (err.message || "Unknown error"));
           }
-          spinButton.disabled = true; // Keep spin button disabled
+          spinButton.disabled = true;
+          lever.style.cursor = 'not-allowed';
         }
       } else {
         console.warn("MetaMask not detected!");
-        alert("MetaMask not detected! Please install MetaMask to use this application.");
+        alert("MetaMask not detected! Please install MetaMask.");
         walletAddressDisplay.innerText = "MetaMask Not Found";
-        walletAddressDisplay.style.color = "#f00"; // Red for error
-        spinButton.disabled = true; // Keep spin button disabled
+        walletAddressDisplay.style.color = "#f00";
+        spinButton.disabled = true;
+        lever.style.cursor = 'not-allowed';
       }
     };
 
-    // --- Helper to flash red light ---
-    function flashRedLight(times = 3, duration = 300) {
-      let count = 0;
-      redLight.classList.remove("active");
-      const interval = setInterval(() => {
-        redLight.classList.toggle("active");
-        count++;
-        if (count >= times * 2) {
-          clearInterval(interval);
-          redLight.classList.remove("active");
-        }
-      }, duration);
+    // --- Bet Button Logic ---
+    betButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        if (isSpinning) return; // Don't allow bet change during spin
+
+        betSound.currentTime = 0;
+        betSound.play().catch(e => console.warn("Bet sound error:", e));
+
+        currentBet = parseInt(button.dataset.bet);
+        updateBetDisplay();
+
+        betButtons.forEach(btn => btn.classList.remove('active-bet'));
+        button.classList.add('active-bet');
+      });
+    });
+    // Set initial active bet button
+    document.querySelector(`.bet-button[data-bet="${currentBet}"]`).classList.add('active-bet');
+
+
+    // --- Top Light Flash ---
+    function flashTopLight(on = true, duration = 4000) { // Renamed from flashRedLight
+      if (on) {
+        topLight.classList.add('flashing');
+        setTimeout(() => {
+          topLight.classList.remove('flashing');
+        }, duration);
+      } else {
+        topLight.classList.remove('flashing');
+      }
     }
+
+    // --- Reel Spinning Animation (Simple Text) ---
+    function animateReels(spinning = true) {
+        const reels = [reel1Display, reel2Display, reel3Display];
+        if (spinning) {
+            reels.forEach(reel => {
+                reel.classList.add('spinning-chars');
+                // This is a very basic text cycle. A real animation would be more complex.
+                // For a true visual spin, you'd need a strip of symbols and animate translateY.
+                // For now, we'll just show a blur/cycle effect.
+                let i = 0;
+                reel.dataset.intervalId = setInterval(() => {
+                    reel.textContent = symbols[i % symbols.length];
+                    i++;
+                }, 80); // Adjust speed of char cycle
+            });
+        } else {
+            reels.forEach(reel => {
+                reel.classList.remove('spinning-chars');
+                if (reel.dataset.intervalId) {
+                    clearInterval(parseInt(reel.dataset.intervalId));
+                    reel.removeAttribute('data-interval-id');
+                }
+            });
+        }
+    }
+
 
     // --- Spin Logic ---
     async function spin() {
       console.log("Spin function called.");
+      if (isSpinning) return;
       if (!userAddress || !signer) {
         alert("Please connect your wallet first to spin!");
-        console.warn("Spin attempt without connected wallet.");
         return;
       }
 
-      spinButton.disabled = true; // Disable spin button during spin
-      spinResultDisplay.textContent = "...SPINNING...";
+      // Check balance against currentBet
+      // Note: sobxBalance is a BigNumber, currentBet is a number.
+      // Convert currentBet to the token's unit.
+      const betAmountWei = ethers.utils.parseUnits(currentBet.toString(), currentTokenDecimals);
+
+      if (sobxBalance.lt(betAmountWei)) { // lt is "less than" for BigNumbers
+          alert(`Not enough SOBX! You need ${currentBet} SOBX to spin.`);
+          return;
+      }
+
+
+      isSpinning = true;
+      spinButton.disabled = true; // Master spin disable
+      lever.style.cursor = 'not-allowed';
+      betButtons.forEach(btn => btn.disabled = true);
+      updateWinDisplay(0); // Clear previous win
+
+      // Deduct bet (client-side only for now, real deduction happens with transaction)
+      sobxBalance = sobxBalance.sub(betAmountWei); // sub is "subtract" for BigNumbers
+      updateBalanceDisplay();
+
+      // reel1Display.textContent = reel2Display.textContent = reel3Display.textContent = "❔";
+      animateReels(true); // Start reel animation
+
       try {
         spinSound.currentTime = 0;
         spinSound.play().catch(e => console.warn("Spin sound play error:", e));
 
-        await new Promise(r => setTimeout(r, 1500)); // Simulate spin delay
-
-        console.log("Calling backend /api/spin for user:", userAddress);
-        const response = await fetch('/api/spin', { // Assumes your server.js is running
+        // Simulate server delay before calling actual spin.
+        // The backend spin call is the critical part.
+        // The body now includes the bet amount. Ensure your backend can handle this.
+        console.log(`Calling backend /api/spin for user: ${userAddress}, Bet: ${currentBet} SOBX`);
+        const response = await fetch('/api/spin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user: userAddress }) // Sending address; backend should handle this
+          body: JSON.stringify({
+            user: userAddress,
+            betAmount: currentBet // Send current bet to backend
+          })
         });
 
         if (!response.ok) {
@@ -294,129 +584,146 @@
           throw new Error(`Spin request failed: ${response.status} ${response.statusText} - ${errorText}`);
         }
 
-        const data = await response.json();
+        const data = await response.json(); // Expect { result: ['S1', 'S2', 'S3'], winAmount: X } from backend
         console.log("Backend response:", data);
 
-        if (!data.result || !Array.isArray(data.result)) {
+        animateReels(false); // Stop reel animation
+
+        if (!data.result || !Array.isArray(data.result) || data.result.length !== 3) {
             throw new Error("Invalid result format from backend.");
         }
-        spinResultDisplay.textContent = data.result.join(" | ");
+        reel1Display.textContent = data.result[0];
+        reel2Display.textContent = data.result[1];
+        reel3Display.textContent = data.result[2];
 
-        // Client-side win determination (for demo - backend should ideally do this)
-        const isWin = data.result.length === 3 && data.result[0] === data.result[1] && data.result[1] === data.result[2];
+        // Backend should ideally determine win and calculate winAmount based on bet.
+        // For this example, let's assume backend returns winAmount in token units (not wei).
+        const winAmountNumber = parseFloat(data.winAmount || 0); // Comes from backend
+        let winAmountWei = ethers.utils.parseUnits("0", currentTokenDecimals); // Default to 0
 
-        if (isWin) {
-          console.log("WIN DETECTED!");
+        if (winAmountNumber > 0) {
+          console.log("WIN DETECTED from backend!");
+          winAmountWei = ethers.utils.parseUnits(winAmountNumber.toString(), currentTokenDecimals);
+
           winSound.currentTime = 0;
           winSound.play().catch(e => console.warn("Win sound play error:", e));
-          flashRedLight();
+          flashTopLight(true); // Start flashing
 
-          // Placeholder for actual payout logic.
-          // The current logic attempts a client-side transfer FROM THE USER to themselves,
-          // using the user's signer. This is NOT how a platform pays out rewards.
-          // A real platform payout comes from the platform's backend wallet.
-          alert("Congrats! You won! (Demo: No real tokens sent from platform yet)");
-          console.log("Win registered. Demo: No actual platform payout is implemented here yet.");
+          updateWinDisplay(ethers.utils.formatUnits(winAmountWei, currentTokenDecimals));
 
-          // If you wanted to test the USER transferring tokens (e.g., for a different game mechanic):
-          // try {
-          //   const sobexContract = new ethers.Contract(sobexTokenAddress, sobexAbi, signer);
-          //   const decimals = await sobexContract.decimals();
-          //   const rewardAmount = ethers.utils.parseUnits("10", decimals); // Example 10 tokens
-          //   console.log(`Attempting to initiate client-side transfer of ${rewardAmount.toString()} SOBEX`);
-          //   const tx = await sobexContract.transfer(userAddress, rewardAmount); // User sends to themselves
-          //   await tx.wait();
-          //   alert("Demo: Client-side initiated 'reward' transfer of 10 SOBEX complete (paid by you).");
-          //   console.log("Client-side demo transfer successful:", tx.hash);
-          // } catch (tokenError) {
-          //   console.error("Demo token transfer error:", tokenError);
-          //   alert("Win confirmed, but demo reward transfer failed: " + (tokenError.reason || tokenError.message));
-          // }
+          // Add winnings (client-side update, real transfer would be from platform)
+          sobxBalance = sobxBalance.add(winAmountWei); // Add win to balance
+          updateBalanceDisplay();
+
+          alert(`Congrats! You won ${ethers.utils.formatUnits(winAmountWei, currentTokenDecimals)} SOBX!`);
+          console.log("Win registered. Amount:", ethers.utils.formatUnits(winAmountWei, currentTokenDecimals));
 
         } else {
-          console.log("No match.");
-          // alert("No match. Try again!"); // Can be a bit annoying, console log is enough for demo
+          console.log("No win or zero win amount from backend.");
+          updateWinDisplay(0);
+          // Optional: "Better luck next time" sound or small animation
         }
 
       } catch (error) {
         console.error("Spin error:", error);
-        spinResultDisplay.textContent = "Spin Error!";
+        animateReels(false);
+        reel1Display.textContent = "ERR";
+        reel2Display.textContent = "OR!";
+        reel3Display.textContent = "!";
         alert("Spin error: " + error.message);
+        // Potentially refund bet if server error and bet was only client-side deducted
+        sobxBalance = sobxBalance.add(betAmountWei); // Refund bet
+        updateBalanceDisplay();
+
       } finally {
-        if (userAddress && signer) { // Only re-enable if still connected
-            spinButton.disabled = false; // Re-enable spin button
+        isSpinning = false;
+        if (userAddress && signer) {
+            spinButton.disabled = false; // Re-enable master spin
+            lever.style.cursor = 'pointer';
+            betButtons.forEach(btn => btn.disabled = false);
         }
       }
     }
 
-    spinButton.addEventListener("click", spin);
+    // Original spinButton is hidden, but lever clicks it.
+    // OR, make lever call spin() directly. Let's change that.
+    // spinButton.addEventListener("click", spin); // Keep if hidden button is used.
 
     // --- Lever functionality ---
     lever.addEventListener("mousedown", () => {
-      if (spinButton.disabled) return; // Don't animate if spin disabled
-      leverArm.classList.add("lever-pulled");
-    });
-    lever.addEventListener("mouseup", () => {
-      if (spinButton.disabled) {
-        leverArm.classList.remove("lever-pulled"); // Still reset visual
-        // alert("Please connect your wallet first or wait for current spin to finish!");
-        return;
-      }
-      leverArm.classList.remove("lever-pulled");
-      spinButton.click(); // Trigger the spin
-    });
-    lever.addEventListener("mouseleave", () => { // Reset if mouse leaves while "pressed"
-      leverArm.classList.remove("lever-pulled");
+      if (spinButton.disabled || isSpinning) return;
+      lever.classList.add("pulled");
+      leverSound.currentTime = 0;
+      leverSound.play().catch(e => console.warn("Lever sound error:", e));
     });
 
-    // --- Handling Account and Network Changes (MetaMask EIP-1193 events) ---
+    lever.addEventListener("mouseup", () => {
+      if (spinButton.disabled || isSpinning) { // If spin is not possible
+        lever.classList.remove("pulled"); // Still reset visual
+        return;
+      }
+      lever.classList.remove("pulled");
+      // spinButton.click(); // OLD: Trigger the hidden spin button
+      spin(); // NEW: Call spin function directly
+    });
+
+    lever.addEventListener("mouseleave", () => { // Reset if mouse leaves while "pressed"
+      if (lever.classList.contains("pulled")) {
+          lever.classList.remove("pulled");
+      }
+    });
+
+    // --- Handling Account and Network Changes ---
     if (window.ethereum) {
-      window.ethereum.on('accountsChanged', (accounts) => {
+      window.ethereum.on('accountsChanged', async (accounts) => {
         console.log('MetaMask accountsChanged event:', accounts);
         if (accounts.length === 0) {
-          // MetaMask is locked or the user has disconnected all accounts
           alert("Wallet disconnected or locked. Please connect again.");
-          walletAddressDisplay.innerText = "Disconnected. Please connect.";
-          walletAddressDisplay.style.color = "#fff"; // Default color
+          walletAddressDisplay.innerText = "Disconnected";
+          walletAddressDisplay.style.color = "#fff";
           connectWalletBtn.innerText = "Connect Wallet";
           connectWalletBtn.disabled = false;
           spinButton.disabled = true;
+          lever.style.cursor = 'not-allowed';
           userAddress = null;
           signer = null;
+          sobxBalance = ethers.BigNumber.from(0); // Reset balance
+          updateBalanceDisplay(); // Balance to 0 or "---"
+          balanceDisplay.textContent = "Balance: --- SOBX";
+
         } else {
-          // Account has changed, re-run connection logic essentially
           userAddress = accounts[0];
           if (provider) {
-            signer = provider.getSigner(); // Get signer for the new account
+            signer = provider.getSigner();
             walletAddressDisplay.innerText = `Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(userAddress.length - 4)}`;
-            walletAddressDisplay.style.color = "#0f0"; // Green
+            walletAddressDisplay.style.color = "#6f6";
             connectWalletBtn.innerText = "Connected";
             connectWalletBtn.disabled = true;
             spinButton.disabled = false;
+            lever.style.cursor = 'pointer';
+            await fetchUserBalance(); // Fetch balance for new account
             console.log("Account changed to:", userAddress);
-            // alert("Account changed to: " + userAddress); // Can be annoying, use console
           } else {
-            // This case should ideally not happen if provider was set during initial connect
-            // but as a fallback, prompt to reconnect.
-            connectWalletBtn.click(); // Attempt to re-trigger connection flow
+            connectWalletBtn.click(); // Re-trigger connection flow if provider is lost
           }
         }
       });
 
       window.ethereum.on('chainChanged', (chainId) => {
         console.log('MetaMask chainChanged event, new chainId:', chainId);
-        alert(`Network changed to ${chainId}. Please ensure you are on the correct network for this dApp. Reloading page.`);
-        window.location.reload(); // Simple way to handle chain changes
+        alert(`Network changed. Reloading page to adapt.`);
+        window.location.reload();
       });
     }
 
-    // Initial check in case already connected from a previous session (less common for file:// protocol)
-    // (async () => {
-    //     if (window.ethereum && window.ethereum.selectedAddress) {
-    //         console.log("Already connected on page load, attempting to re-initialize.");
-    //         await connectWalletBtn.click(); // Simulate click to re-establish state
-    //     }
-    // })();
+    // Initial state setup
+    updateBetDisplay();
+    updateWinDisplay(0);
+    balanceDisplay.textContent = "Balance: --- SOBX"; // Initial placeholder
+    if (!userAddress) { // Disable lever if not connected on load
+        lever.style.cursor = 'not-allowed';
+        spinButton.disabled = true;
+    }
 
   </script>
 </body>
