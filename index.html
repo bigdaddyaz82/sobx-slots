@@ -194,15 +194,18 @@
   <!-- Ethers.js CDN -->
   <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
 
-  <script>
+    <script>
+    // Your existing constants for SOBEX token (used later in spin)
     const sobexTokenAddress = "0x99c76e2311ebe008c59226b826c2b96e39e9428b";
     const sobexAbi = [
       "function transfer(address to, uint256 amount) public returns (bool)",
       "function decimals() view returns (uint8)"
     ];
 
+    // Variables to store ethers objects and user address
     let provider, signer, userAddress;
 
+    // Get DOM elements
     const connectWalletBtn = document.getElementById("connectWallet");
     const spinButton = document.getElementById("spinButton");
     const spinResultDisplay = document.getElementById("spinResult");
@@ -213,109 +216,189 @@
     const lever = document.getElementById("lever");
     const leverArm = lever.querySelector(".lever-arm");
 
-    // Connect Wallet
+    // --- Connect Wallet Functionality ---
     connectWalletBtn.onclick = async () => {
-      if (window.ethereum) {
+      if (typeof window.ethereum !== 'undefined') {
         try {
+          // 1. Initialize Ethers.js provider with MetaMask's provider
           provider = new ethers.providers.Web3Provider(window.ethereum);
+
+          // 2. Request account access from MetaMask
+          // This will prompt the user to connect their wallet if they haven't already
           await provider.send("eth_requestAccounts", []);
+
+          // 3. Get the signer object
+          // A signer is needed to sign transactions (not strictly for getting address, but good practice)
           signer = provider.getSigner();
+
+          // 4. Get the connected wallet address
           userAddress = await signer.getAddress();
-          walletAddressDisplay.innerText = `Connected: ${userAddress}`;
-        } catch (err) {
-          alert("Wallet connection failed: " + err.message);
+
+          // 5. Update UI to show connected status
+          // Display a truncated version of the address for better UI
+          walletAddressDisplay.innerText = `Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(userAddress.length - 4)}`;
+          connectWalletBtn.innerText = "Connected";
+          connectWalletBtn.disabled = true; // Disable button after successful connection
+
+          // Enable the spin button now that the wallet is connected
+          spinButton.disabled = false;
+
+          // **Optional Next Step:** If you want to inform your backend that a wallet connected:
+          // fetch('/api/user-connected', {
+          //   method: 'POST',
+          //   headers: { 'Content-Type': 'application/json' },
+          //   body: JSON.stringify({ walletAddress: userAddress })
+          // }).then(response => response.json())
+          //   .then(data => console.log('Backend notified:', data))
+          //   .catch(error => console.error('Error notifying backend:', error));
+          // (You would need to create this '/api/user-connected' endpoint on your server.js)
+
+        } catch (error) {
+          console.error("Wallet connection error:", error);
+          walletAddressDisplay.innerText = "Connection failed. Please try again.";
+          if (error.code === 4001) { // User rejected the request
+            alert("You rejected the connection request in MetaMask.");
+          } else {
+            alert("Wallet connection failed: " + error.message);
+          }
+          // Ensure spin button remains disabled if connection fails
+          spinButton.disabled = true;
         }
       } else {
-        alert("MetaMask not detected!");
+        // MetaMask (or other window.ethereum provider) is not installed
+        alert("MetaMask not detected! Please install MetaMask to use this application.");
+        walletAddressDisplay.innerText = "MetaMask not detected.";
+        spinButton.disabled = true;
       }
     };
 
-    // Helper to flash red light on win
-    function flashRedLight(times = 3, duration = 300) {
-      let count = 0;
-      redLight.classList.add("active");
-      const interval = setInterval(() => {
-        redLight.classList.toggle("active");
-        count++;
-        if (count >= times * 2) {
-          clearInterval(interval);
-          redLight.classList.remove("active");
-        }
-      }, duration);
-    }
-
-    // Spin Logic
+    // --- Spin Logic (existing, ensure it checks for userAddress) ---
     async function spin() {
-      if (!userAddress) {
-        alert("Connect your wallet first!");
+      if (!userAddress || !signer) { // Check if wallet is connected
+        alert("Please connect your wallet first to spin!");
         return;
       }
 
+      // ... (rest of your existing spin logic)
       try {
-        // Play spin sound
         spinSound.currentTime = 0;
         spinSound.play();
-
-        // Simulate spin with delay for better feel
         spinResultDisplay.textContent = "...SPINNING...";
         await new Promise(r => setTimeout(r, 1500));
 
-        // Call your backend API for spin result
-        const response = await fetch('/api/spin', {
+        const response = await fetch('/api/spin', { // This call is good
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user: userAddress })
+          body: JSON.stringify({ user: userAddress }) // Sending userAddress to backend
         });
 
-        if (!response.ok) throw new Error("Spin failed!");
+        if (!response.ok) throw new Error(`Spin request failed: ${response.statusText}`);
 
         const data = await response.json();
+        spinResultDisplay.textContent = data.result.join(" | "); // Assuming backend sends result as an array
 
-        spinResultDisplay.textContent = data.result.join(" | ");
-
-        // Check for win (all three equal)
-        const isWin = data.result[0] === data.result[1] && data.result[1] === data.result[2];
+        // Backend should ideally determine win and payout.
+        // For now, client-side win determination and payout initiation:
+        const isWin = data.result.length === 3 && data.result[0] === data.result[1] && data.result[1] === data.result[2];
 
         if (isWin) {
-          // Play win sound
           winSound.currentTime = 0;
           winSound.play();
-
-          // Flash blinking red light
           flashRedLight();
 
-          // Send tokens
-          const sobexContract = new ethers.Contract(sobexTokenAddress, sobexAbi, signer);
-          const decimals = await sobexContract.decimals();
-          const rewardAmount = ethers.utils.parseUnits("10", decimals);
+          // IMPORTANT: This part will be revised when platform handles payouts.
+          // For now, it attempts a client-side transfer from the user's perspective.
+          alert("Congrats! You won! Attempting to send reward..."); // Placeholder
+          try {
+            const sobexContract = new ethers.Contract(sobexTokenAddress, sobexAbi, signer);
+            const decimals = await sobexContract.decimals(); // Ensure SOBEX ABI has decimals()
+            const rewardAmount = ethers.utils.parseUnits("10", decimals); // Example: 10 tokens
 
-          const tx = await sobexContract.transfer(userAddress, rewardAmount);
-          await tx.wait();
-
-          alert("Congrats! You won 10 SOBEX!");
+            // This transaction is initiated and paid for by the USER'S connected wallet.
+            // In a real casino, the PLATFORM'S wallet would send the reward.
+            const tx = await sobexContract.transfer(userAddress, rewardAmount);
+            await tx.wait();
+            alert("Reward of 10 SOBEX should have been transferred! (Check your wallet and transaction)");
+          } catch (tokenError) {
+            console.error("Token transfer error:", tokenError);
+            alert("Win confirmed, but reward transfer failed: " + tokenError.message);
+          }
         } else {
-          alert("No match. Try again!");
+          // No win
         }
 
       } catch (error) {
-        console.error(error);
+        console.error("Spin error:", error);
+        spinResultDisplay.textContent = "Spin Error!";
         alert("Spin error: " + error.message);
       }
     }
 
     spinButton.addEventListener("click", spin);
 
-    // Lever triggers the spin button click
+    // --- Lever functionality (existing) ---
     lever.addEventListener("mousedown", () => {
       leverArm.classList.add("lever-pulled");
     });
     lever.addEventListener("mouseup", () => {
       leverArm.classList.remove("lever-pulled");
-      spinButton.click();
+      if (!spinButton.disabled) { // Only click spin if it's enabled
+        spinButton.click();
+      } else {
+        alert("Please connect your wallet first!");
+      }
     });
-    lever.addEventListener("mouseleave", () => {
+    lever.addEventListener("mouseleave", () => { // Ensure lever resets if mouse leaves while pressed
       leverArm.classList.remove("lever-pulled");
     });
+
+    // --- Helper to flash red light (existing) ---
+    function flashRedLight(times = 3, duration = 300) {
+      let count = 0;
+      redLight.classList.remove("active"); // Ensure it's reset before starting
+      const interval = setInterval(() => {
+        redLight.classList.toggle("active");
+        count++;
+        if (count >= times * 2) { // Blink on and off for 'times'
+          clearInterval(interval);
+          redLight.classList.remove("active");
+        }
+      }, duration);
+    }
+
+    // --- Handling Account and Network Changes (Recommended for robustness) ---
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', (accounts) => {
+        if (accounts.length === 0) {
+          // MetaMask is locked or the user has disconnected all accounts
+          alert("Wallet disconnected. Please connect again.");
+          walletAddressDisplay.innerText = "Disconnected. Please connect.";
+          connectWalletBtn.innerText = "Connect Wallet";
+          connectWalletBtn.disabled = false;
+          spinButton.disabled = true;
+          userAddress = null;
+          signer = null;
+          // provider = null; // Provider might still be valid if MetaMask is just locked
+        } else {
+          // Account has changed, re-run connection logic for the new account
+          userAddress = accounts[0]; // Update to the new address
+          // Re-initialize signer for the new account
+          if(provider) { // provider should still exist
+             signer = provider.getSigner();
+          }
+          walletAddressDisplay.innerText = `Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(userAddress.length - 4)}`;
+          connectWalletBtn.innerText = "Connected";
+          connectWalletBtn.disabled = true;
+          spinButton.disabled = false;
+          alert("Account changed to: " + userAddress);
+        }
+      });
+
+      window.ethereum.on('chainChanged', (chainId) => {
+        // Handle chain changes, e.g., reload the page or prompt user to switch to the correct network
+        alert(`Network changed to ${chainId}. Please ensure you are on the correct network.`);
+        // You might want to reload or re-initialize parts of your app
+        window.location.reload();
+      });
+    }
   </script>
-</body>
-</html>
