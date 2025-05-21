@@ -1,1 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SOBEX Slots - Old School Style</title>
+  <style>
+    body {
+      background: #222;
+      font-family: 'Courier New', Courier, monospace;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+    }
+    .slot-machine {
+      position: relative;
+      width: 320px;
+      background: #444;
+      border: 5px solid #aaa;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 20px #f00 inset;
+    }
+    .red-light {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 40px;
+      background: red;
+      border-radius: 50%;
+      box-shadow: 0 0 15px 5px red;
+      opacity: 0.2;
+      transition: opacity 0.3s ease;
+      z-index: 10;
+    }
+    .red-light.active {
+      opacity: 1;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 100% {opacity: 1;}
+      50% {opacity: 0.2;}
+    }
+    #spinResult {
+      font-size: 2.2rem;
+      text-align: center;
+      margin: 10px 0 20px 0;
+      letter-spacing: 1.2rem;
+      font-weight: bold;
+      font-family: 'Courier New', Courier, monospace;
+      background-color: #111;
+      padding: 10px;
+      border-radius: 5px;
+      border: 2px solid #333;
+    }
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+    #connectWallet {
+      background: #0077ff;
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 6px;
+      flex: 1;
+      margin-right: 10px;
+      transition: background 0.3s;
+    }
+    #connectWallet:hover:not(:disabled) {
+      background: #005bb5;
+    }
+    #connectWallet:disabled {
+        background: #555;
+        cursor: not-allowed;
+    }
+    #spinButton {
+      background: #e00;
+      color: white;
+      border: none;
+      padding: 18px 28px;
+      font-size: 2rem;
+      font-weight: bold;
+      border-radius: 12px;
+      cursor: pointer;
+      flex: 1;
+      margin-left: 10px;
+      box-shadow: 0 0 15px #f00;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    #spinButton:hover:not(:disabled) {
+      background: #a00;
+      box-shadow: 0 0 25px #f33;
+    }
+    #spinButton:disabled {
+      background-color: #770000;
+      color: #aaa;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .lever-container {
+      position: absolute;
+      top: 40px;
+      right: -70px;
+      width: 50px;
+      height: 150px;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .lever-arm {
+      background: #bbb;
+      width: 12px;
+      height: 100px;
+      border-radius: 8px;
+      box-shadow: inset 0 0 5px #666;
+      position: relative;
+      transition: transform 0.2s ease;
+    }
+    .lever-knob {
+      background: #c33;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-top: -20px;
+      box-shadow: 0 0 8px #f00;
+    }
+    .lever-pulled {
+      transform: rotate(45deg);
+      transition: transform 0.2s ease;
+    }
+    #walletAddress {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      font-family: monospace;
+      min-height: 1.3rem;
+      text-align: center;
+      color: #0f0; /* Green color for connected status */
+      padding: 5px;
+      background-color: #333;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
 
+  <div class="slot-machine">
+    <div class="red-light" id="redLight"></div>
+    <div id="spinResult">- - -</div>
+    <div class="buttons">
+      <button id="connectWallet">Connect Wallet</button>
+      <button id="spinButton" disabled>SPIN</button> <!-- Initially disabled -->
+    </div>
+    <div id="walletAddress">Not Connected</div> <!-- Initial message -->
+    <div class="lever-container" id="lever" title="Pull lever to spin">
+      <div class="lever-arm"></div>
+      <div class="lever-knob"></div>
+    </div>
+  </div>
+
+  <!-- Sounds -->
+  <audio id="spinSound" src="https://actions.google.com/sounds/v1/casino/slot_machine_spin.ogg" preload="auto"></audio>
+  <audio id="winSound" src="https://actions.google.com/sounds/v1/casino/slot_machine_win.ogg" preload="auto"></audio>
+
+  <!-- Ethers.js CDN -->
+  <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+
+  <script>
+    // Constants for SOBEX token (replace with your actual token details for real payouts)
+    const sobexTokenAddress = "0x99c76e2311ebe008c59226b826c2b96e39e9428b"; // Placeholder
+    const sobexAbi = [
+      "function transfer(address to, uint256 amount) public returns (bool)",
+      "function decimals() view returns (uint8)" // Make sure your token ABI includes this or adjust
+    ];
+
+    // Ethers.js objects and user address
+    let provider, signer, userAddress;
+
+    // DOM Elements
+    const connectWalletBtn = document.getElementById("connectWallet");
+    const spinButton = document.getElementById("spinButton");
+    const spinResultDisplay = document.getElementById("spinResult");
+    const walletAddressDisplay = document.getElementById("walletAddress");
+    const redLight = document.getElementById("redLight");
+    const spinSound = document.getElementById("spinSound");
+    const winSound = document.getElementById("winSound");
+    const lever = document.getElementById("lever");
+    const leverArm = lever.querySelector(".lever-arm");
+
+    // --- Connect Wallet Functionality ---
+    connectWalletBtn.onclick = async () => {
+      console.log("Connect Wallet button clicked.");
+
+      if (typeof window.ethereum !== 'undefined') {
+        console.log("MetaMask (window.ethereum) detected.");
+        try {
+          provider = new ethers.providers.Web3Provider(window.ethereum);
+          console.log("Ethers provider initialized.");
+
+          await provider.send("eth_requestAccounts", []); // Request account access
+          console.log("Accounts requested from MetaMask.");
+
+          signer = provider.getSigner();
+          console.log("Signer obtained.");
+
+          userAddress = await signer.getAddress();
+          console.log("User address obtained:", userAddress);
+
+          walletAddressDisplay.innerText = `Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(userAddress.length - 4)}`;
+          connectWalletBtn.innerText = "Connected";
+          connectWalletBtn.disabled = true;
+          spinButton.disabled = false; // Enable spin button
+          console.log("UI updated for connected state. Spin button enabled.");
+
+          // Optional: Notify backend of connection (you'd need to implement this endpoint)
+          // fetch('/api/user-connected', {
+          //   method: 'POST',
+          //   headers: { 'Content-Type': 'application/json' },
+          //   body: JSON.stringify({ walletAddress: userAddress })
+          // }).then(res => res.json()).then(data => console.log("Backend notified:", data))
+          //   .catch(err => console.error("Error notifying backend:", err));
+
+        } catch (err) {
+          console.error("Wallet connection error:", err);
+          walletAddressDisplay.innerText = "Connection Failed!";
+          walletAddressDisplay.style.color = "#f00"; // Red for error
+          if (err.code === 4001) { // User rejected the request
+            alert("You rejected the connection request in MetaMask.");
+          } else {
+            alert("Wallet connection failed: " + (err.message || "Unknown error"));
+          }
+          spinButton.disabled = true; // Keep spin button disabled
+        }
+      } else {
+        console.warn("MetaMask not detected!");
+        alert("MetaMask not detected! Please install MetaMask to use this application.");
+        walletAddressDisplay.innerText = "MetaMask Not Found";
+        walletAddressDisplay.style.color = "#f00"; // Red for error
+        spinButton.disabled = true; // Keep spin button disabled
+      }
+    };
+
+    // --- Helper to flash red light ---
+    function flashRedLight(times = 3, duration = 300) {
+      let count = 0;
+      redLight.classList.remove("active");
+      const interval = setInterval(() => {
+        redLight.classList.toggle("active");
+        count++;
+        if (count >= times * 2) {
+          clearInterval(interval);
+          redLight.classList.remove("active");
+        }
+      }, duration);
+    }
+
+    // --- Spin Logic ---
+    async function spin() {
+      console.log("Spin function called.");
+      if (!userAddress || !signer) {
+        alert("Please connect your wallet first to spin!");
+        console.warn("Spin attempt without connected wallet.");
+        return;
+      }
+
+      spinButton.disabled = true; // Disable spin button during spin
+      spinResultDisplay.textContent = "...SPINNING...";
+      try {
+        spinSound.currentTime = 0;
+        spinSound.play().catch(e => console.warn("Spin sound play error:", e));
+
+        await new Promise(r => setTimeout(r, 1500)); // Simulate spin delay
+
+        console.log("Calling backend /api/spin for user:", userAddress);
+        const response = await fetch('/api/spin', { // Assumes your server.js is running
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: userAddress }) // Sending address; backend should handle this
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Spin request failed: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log("Backend response:", data);
+
+        if (!data.result || !Array.isArray(data.result)) {
+            throw new Error("Invalid result format from backend.");
+        }
+        spinResultDisplay.textContent = data.result.join(" | ");
+
+        // Client-side win determination (for demo - backend should ideally do this)
+        const isWin = data.result.length === 3 && data.result[0] === data.result[1] && data.result[1] === data.result[2];
+
+        if (isWin) {
+          console.log("WIN DETECTED!");
+          winSound.currentTime = 0;
+          winSound.play().catch(e => console.warn("Win sound play error:", e));
+          flashRedLight();
+
+          // Placeholder for actual payout logic.
+          // The current logic attempts a client-side transfer FROM THE USER to themselves,
+          // using the user's signer. This is NOT how a platform pays out rewards.
+          // A real platform payout comes from the platform's backend wallet.
+          alert("Congrats! You won! (Demo: No real tokens sent from platform yet)");
+          console.log("Win registered. Demo: No actual platform payout is implemented here yet.");
+
+          // If you wanted to test the USER transferring tokens (e.g., for a different game mechanic):
+          // try {
+          //   const sobexContract = new ethers.Contract(sobexTokenAddress, sobexAbi, signer);
+          //   const decimals = await sobexContract.decimals();
+          //   const rewardAmount = ethers.utils.parseUnits("10", decimals); // Example 10 tokens
+          //   console.log(`Attempting to initiate client-side transfer of ${rewardAmount.toString()} SOBEX`);
+          //   const tx = await sobexContract.transfer(userAddress, rewardAmount); // User sends to themselves
+          //   await tx.wait();
+          //   alert("Demo: Client-side initiated 'reward' transfer of 10 SOBEX complete (paid by you).");
+          //   console.log("Client-side demo transfer successful:", tx.hash);
+          // } catch (tokenError) {
+          //   console.error("Demo token transfer error:", tokenError);
+          //   alert("Win confirmed, but demo reward transfer failed: " + (tokenError.reason || tokenError.message));
+          // }
+
+        } else {
+          console.log("No match.");
+          // alert("No match. Try again!"); // Can be a bit annoying, console log is enough for demo
+        }
+
+      } catch (error) {
+        console.error("Spin error:", error);
+        spinResultDisplay.textContent = "Spin Error!";
+        alert("Spin error: " + error.message);
+      } finally {
+        if (userAddress && signer) { // Only re-enable if still connected
+            spinButton.disabled = false; // Re-enable spin button
+        }
+      }
+    }
+
+    spinButton.addEventListener("click", spin);
+
+    // --- Lever functionality ---
+    lever.addEventListener("mousedown", () => {
+      if (spinButton.disabled) return; // Don't animate if spin disabled
+      leverArm.classList.add("lever-pulled");
+    });
+    lever.addEventListener("mouseup", () => {
+      if (spinButton.disabled) {
+        leverArm.classList.remove("lever-pulled"); // Still reset visual
+        // alert("Please connect your wallet first or wait for current spin to finish!");
+        return;
+      }
+      leverArm.classList.remove("lever-pulled");
+      spinButton.click(); // Trigger the spin
+    });
+    lever.addEventListener("mouseleave", () => { // Reset if mouse leaves while "pressed"
+      leverArm.classList.remove("lever-pulled");
+    });
+
+    // --- Handling Account and Network Changes (MetaMask EIP-1193 events) ---
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', (accounts) => {
+        console.log('MetaMask accountsChanged event:', accounts);
+        if (accounts.length === 0) {
+          // MetaMask is locked or the user has disconnected all accounts
+          alert("Wallet disconnected or locked. Please connect again.");
+          walletAddressDisplay.innerText = "Disconnected. Please connect.";
+          walletAddressDisplay.style.color = "#fff"; // Default color
+          connectWalletBtn.innerText = "Connect Wallet";
+          connectWalletBtn.disabled = false;
+          spinButton.disabled = true;
+          userAddress = null;
+          signer = null;
+        } else {
+          // Account has changed, re-run connection logic essentially
+          userAddress = accounts[0];
+          if (provider) {
+            signer = provider.getSigner(); // Get signer for the new account
+            walletAddressDisplay.innerText = `Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(userAddress.length - 4)}`;
+            walletAddressDisplay.style.color = "#0f0"; // Green
+            connectWalletBtn.innerText = "Connected";
+            connectWalletBtn.disabled = true;
+            spinButton.disabled = false;
+            console.log("Account changed to:", userAddress);
+            // alert("Account changed to: " + userAddress); // Can be annoying, use console
+          } else {
+            // This case should ideally not happen if provider was set during initial connect
+            // but as a fallback, prompt to reconnect.
+            connectWalletBtn.click(); // Attempt to re-trigger connection flow
+          }
+        }
+      });
+
+      window.ethereum.on('chainChanged', (chainId) => {
+        console.log('MetaMask chainChanged event, new chainId:', chainId);
+        alert(`Network changed to ${chainId}. Please ensure you are on the correct network for this dApp. Reloading page.`);
+        window.location.reload(); // Simple way to handle chain changes
+      });
+    }
+
+    // Initial check in case already connected from a previous session (less common for file:// protocol)
+    // (async () => {
+    //     if (window.ethereum && window.ethereum.selectedAddress) {
+    //         console.log("Already connected on page load, attempting to re-initialize.");
+    //         await connectWalletBtn.click(); // Simulate click to re-establish state
+    //     }
+    // })();
+
+  </script>
+</body>
+</html>
