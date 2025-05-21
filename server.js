@@ -2,53 +2,60 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto'); // Import the crypto module
+// const fs = require('fs'); // You could use this for deeper debugging if needed
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000; // Correct for Render
 
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from 'public' folder
-// Assuming your slots.html is renamed to index.html and is in a 'public' subfolder
+// Serve static files from the 'public' directory
+// This middleware will automatically look for 'index.html' in 'public' for requests to '/'
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/api/spin', (req, res) => {
-  // For your slot machine, let's assume symbols are numbers 0-9 for simplicity.
-  // You can map these numbers to actual symbols (cherries, 7s, etc.) on the frontend or backend.
   const numberOfReels = 3;
   const symbolsPerReel = 10; // Represents symbols 0 through 9
-
   const result = [];
+
   try {
     for (let i = 0; i < numberOfReels; i++) {
-      // crypto.randomInt(max) generates a random integer between 0 (inclusive) and max (exclusive).
-      // So, crypto.randomInt(10) will generate numbers from 0 to 9.
       const randomNumber = crypto.randomInt(symbolsPerReel);
       result.push(randomNumber);
     }
-    // At this point, the backend knows the result.
-    // In a real system, you would now:
-    // 1. Verify if the user can spin (e.g., has balance, session is valid).
-    // 2. Deduct bet amount from user's balance in the database.
-    // 3. Determine if 'result' is a winning combination based on your game's paytable.
-    // 4. If it's a win, calculate the payout and add it to the user's balance in the database.
-    // 5. Log the spin details (user, bet, result, win/loss, payout) in the database.
-
-    // For now, we just return the result
     res.json({ result });
-
   } catch (error) {
     console.error("Error generating spin result:", error);
-    // It's good practice to not send detailed internal errors to the client in production.
     res.status(500).json({ error: "Failed to generate spin. Please try again." });
   }
 });
 
-// For any other route, serve index.html (SPA fallback)
-// Ensure your main slot machine HTML is named 'index.html' and is in the 'public' directory.
+// Fallback for any other route: serve index.html
+// This is important for Single Page Applications (SPAs) or if express.static doesn't catch a direct '/'
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  const indexPath = path.join(__dirname, 'public', 'index.html');
+  
+  // Optional: Log the path being accessed, helps in debugging on Render
+  console.log(`Attempting to serve index.html from: ${indexPath}`);
+
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      // This block will execute if res.sendFile encounters an error AFTER successfully finding the file initially
+      // or if the path itself is problematic in a way that Express didn't catch earlier.
+      // The ENOTDIR error specifically means the path to the directory ('public') is the issue.
+      console.error(`Error sending file ${indexPath}:`, err);
+      
+      // Send a more specific error status if available, otherwise 500
+      if (err.status) {
+        res.status(err.status).send(`Error sending file: ${err.message}`);
+      } else {
+        res.status(500).send(`Internal Server Error: ${err.message}`);
+      }
+    } else {
+      console.log(`Successfully sent ${indexPath}`);
+    }
+  });
 });
 
 app.listen(PORT, () => {
