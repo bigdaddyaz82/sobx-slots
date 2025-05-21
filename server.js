@@ -71,17 +71,16 @@ app.post('/api/spin', (req, res) => {
 // For any other route, serve index.html (SPA fallback)
 app.get('*', (req, res) => {
   const indexPath = path.join(__dirname, 'public', 'index.html');
-  // console.log(`Attempting to serve index.html from: ${indexPath}`); // Moved debug log for this to be less noisy after initial check
+  // console.log(`Attempting to serve index.html from: ${indexPath}`); // Original log for this. Debug section at top is more detailed for initial check.
   res.sendFile(indexPath, (err) => {
     if (err) {
-      // The ENOTDIR here is usually a symptom of 'public' not being a directory or 'public/index.html' being a dir
-      console.error(`Error sending file ${indexPath}:`, err.message); // Log only message for brevity
-      if (!res.headersSent) { // Check if headers already sent
-        res.status(err.status || 500).send(`Failed to serve the application. Error: ${err.code}`);
+      console.error(`Error sending file ${indexPath}:`, err.message); // Log only message for brevity in this callback
+      if (!res.headersSent) { 
+        res.status(err.status || 500).send(`Failed to serve the application. Error: ${err.code || 'UNKNOWN'}`);
       }
     }
     // else {
-    //   console.log(`Successfully sent ${indexPath}`); // Can be noisy
+    //   console.log(`Successfully sent ${indexPath}`); // Can be noisy, enable if needed
     // }
   });
 });
