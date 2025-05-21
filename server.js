@@ -11,14 +11,12 @@ app.use(express.json());
 // Serve static files from 'public' folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Your existing API route
+// Your existing API route with updated spin logic
 app.post('/api/spin', (req, res) => {
-  // Your spin logic here
-  const symbols = ['cherry', 'lemon', 'orange', 'seven', 'bar'];
-  function getRandomSymbol() {
-    return symbols[Math.floor(Math.random() * symbols.length)];
+  function getRandomDigit() {
+    return Math.floor(Math.random() * 10); // 0 through 9
   }
-  const result = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
+  const result = [getRandomDigit(), getRandomDigit(), getRandomDigit()];
   res.json({ result });
 });
 
