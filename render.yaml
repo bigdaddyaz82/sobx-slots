@@ -6,7 +6,7 @@ services:
   repo: https://github.com/bigdaddyaz82/sobx-slots
   plan: free
   region: oregon
-  buildCommand: yarn install
+  buildCommand: npm install
   startCommand: node server.js
   autoDeployTrigger: commit
 version: "1"
