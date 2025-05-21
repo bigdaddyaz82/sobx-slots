@@ -1,246 +1,274 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SOBX Slots</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background-color: #111;
-    color: #fff;
-    margin: 0;
-    padding-bottom: 80px;
-  }
-  h1 {
-    margin-top: 30px;
-    font-size: 2.5rem;
-  }
-  .slot-machine {
-    display: flex;
-    justify-content: center;
-    margin-top: 50px;
-    margin-bottom: 30px;
-  }
-  .symbol {
-    width: 120px;
-    height: 120px;
-    border: 4px solid #fff;
-    margin: 0 10px;
-    font-size: 4rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #333;
-    border-radius: 10px;
-    user-select: none;
-  }
-  .buttons-row {
-    margin-top: 30px;
-  }
-  button {
-    padding: 12px 25px;
-    font-size: 1rem;
-    margin: 10px 8px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    background-color: #28a745;
-    color: #fff;
-    transition: background-color 0.2s;
-  }
-  button:hover {
-    background-color: #218838;
-  }
-  button.selected {
-    background-color: #ffc107;
-    color: #111;
-    font-weight: bold;
-  }
-  #multiplierBtn {
-    background-color: #007bff;
-  }
-  #multiplierBtn.selected {
-    background-color: #0056b3;
-    font-weight: bold;
-  }
-  #result {
-    margin-top: 25px;
-    font-size: 1.3rem;
-    min-height: 1.5em;
-    user-select: none;
-  }
-  input[type="text"] {
-    padding: 10px;
-    width: 320px;
-    font-size: 1rem;
-    margin-top: 30px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-  }
-  #musicToggle {
-    margin-top: 15px;
-    background-color: #444;
-    color: #fff;
-    border-radius: 5px;
-  }
-  footer {
-    margin-top: 50px;
-    padding: 15px;
-    background-color: #222;
-    color: #fff;
-    font-size: 0.9rem;
-    text-align: center;
-    font-family: Arial, sans-serif;
-    position: fixed;
-    width: 100%;
-    bottom: 0;
-    left: 0;
-  }
-  footer a {
-    color: #28a745;
-    text-decoration: underline;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sobex Slots with Wallet & Weekend Bonus</title>
+  <style>
+    body {
+      background: #121212;
+      color: #eee;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    #slot-machine {
+      background: #222;
+      border: 4px solid #f39c12;
+      border-radius: 15px;
+      display: inline-block;
+      padding: 25px 40px 40px 40px;
+      box-shadow: 0 0 15px #f39c12aa;
+      user-select: none;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    #slots {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .slot-wheel {
+      width: 80px;
+      height: 80px;
+      margin: 0 10px;
+      font-size: 60px;
+      line-height: 80px;
+      border: 3px solid #f39c12;
+      border-radius: 12px;
+      background: #111;
+      font-weight: bold;
+      color: #f39c12;
+      text-shadow: 0 0 10px #f39c12bb;
+    }
+    #bet-buttons, #actions {
+      margin-top: 15px;
+    }
+    #bet-buttons button, #actions button {
+      margin: 0 6px;
+      padding: 10px 24px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: #f39c12;
+      color: #222;
+      transition: background 0.3s ease;
+    }
+    #bet-buttons button.selected, #actions button.selected {
+      background: #e67e22;
+      box-shadow: 0 0 12px #e67e22aa;
+    }
+    #spin-button:disabled {
+      background: #555 !important;
+      cursor: not-allowed;
+      box-shadow: none !important;
+    }
+    #result {
+      margin-top: 25px;
+      font-size: 22px;
+      min-height: 40px;
+      font-weight: bold;
+      color: #f1c40f;
+      text-shadow: 0 0 8px #f1c40faa;
+    }
+    #wallet-section {
+      margin-bottom: 30px;
+    }
+  </style>
 </head>
 <body>
 
-<h1>SOBX Slot Machine</h1>
+  <div id="wallet-section">
+    <button id="connectWalletBtn">Connect MetaMask Wallet</button>
+    <p id="walletStatus">Wallet not connected</p>
+  </div>
 
-<!-- Wallet input and connect button -->
-<div>
-  <input type="text" id="wallet" placeholder="Enter your wallet address" autocomplete="off" />
-  <br />
-  <button onclick="connectWallet()">Connect Wallet</button>
-</div>
+  <div id="slot-machine">
+    <h1>Sobex Slots</h1>
 
-<!-- Slot machine wheels -->
-<div class="slot-machine">
-  <div class="symbol" id="symbol1">?</div>
-  <div class="symbol" id="symbol2">?</div>
-  <div class="symbol" id="symbol3">?</div>
-</div>
+    <div id="slots">
+      <div class="slot-wheel" id="wheel1">?</div>
+      <div class="slot-wheel" id="wheel2">?</div>
+      <div class="slot-wheel" id="wheel3">?</div>
+    </div>
 
-<div class="buttons-row">
-  <button id="bet1Btn" onclick="selectBet(1)">Bet 1</button>
-  <button id="bet5Btn" onclick="selectBet(5)">Bet 5</button>
-  <button id="bet10Btn" onclick="selectBet(10)">Bet 10</button>
-  <button id="multiplierBtn" onclick="toggleMultiplier()">×2</button>
-</div>
+    <div id="bet-buttons">
+      Bet: 
+      <button data-bet="1" class="selected">1 Sobex</button>
+      <button data-bet="5">5 Sobex</button>
+      <button data-bet="10">10 Sobex</button>
+    </div>
 
-<div>
-  <button style="margin-top:20px; font-size:1.2rem; padding:12px 40px;" onclick="spin()">Spin</button>
-</div>
+    <div id="actions" style="margin-top:10px;">
+      <button id="doubleBetBtn">2x Bet: OFF</button>
+    </div>
 
-<div id="result"></div>
-<div id="dailyBonus" style="margin-top: 15px; font-size: 1.1rem; color: #ffc107;"></div>
+    <button id="spin-button" disabled>Spin</button>
 
-<button id="musicToggle" onclick="toggleMusic()">Music: Off</button>
-
-<audio id="backgroundMusic" loop src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_713a2f2541.mp3?filename=ambient-music-11024.mp3" preload="auto"></audio>
-<audio id="spinSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_59b3dff924.mp3?filename=casino-slot-machine-4614.mp3" preload="auto"></audio>
-<audio id="winSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_4f0d3f142a.mp3?filename=winning-coin-4933.mp3" preload="auto"></audio>
-<audio id="loseSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_c464aa6f30.mp3?filename=slot-machine-losing-sound-4603.mp3" preload="auto"></audio>
+    <div id="result"></div>
+  </div>
 
 <script>
-  const symbols = ['cherry', 'lemon', 'orange', 'seven', 'bar', 'grape', 'diamond', 'skull', 'apple', 'parrot', 'horseshoe', 'clover', 'star'];
-  const emojiMap = {
-    cherry: '🍒',
-    lemon: '🍋',
-    orange: '🍊',
-    seven: '7️⃣',
-    bar: '🍫',
-    grape: '🍇',
-    diamond: '💎',
-    skull: '💀',
-    apple: '🍎',
-    parrot: '🦜',
-    horseshoe: '🐎',
-    clover: '🍀',
-    star: '⭐️'
-  };
+  // Numbers 0-9 as slot symbols
+  const symbols = ['0','1','2','3','4','5','6','7','8','9'];
 
+  // Elements
+  const betButtons = document.querySelectorAll('#bet-buttons button');
+  const spinButton = document.getElementById('spin-button');
+  const resultDiv = document.getElementById('result');
+  const wheels = [
+    document.getElementById('wheel1'),
+    document.getElementById('wheel2'),
+    document.getElementById('wheel3')
+  ];
+  const doubleBetBtn = document.getElementById('doubleBetBtn');
+
+  // Wallet connect
+  const connectWalletBtn = document.getElementById('connectWalletBtn');
+  const walletStatus = document.getElementById('walletStatus');
+
+  // State
   let selectedBet = 1;
-  let multiplierActive = false;
-  let spinTimeouts = [];
+  let doubleBet = false;
+  let spinning = false;
 
-  window.onload = () => {
-    selectBet(selectedBet);
-    checkDailyBonus();
-  };
+  // Weekend toggle key & helper
+  const WEEKEND_BONUS_KEY = 'sobexWeekendBonusToggle';
 
-  function selectBet(amount) {
-    selectedBet = amount;
-
-    document.getElementById('bet1Btn').classList.remove('selected');
-    document.getElementById('bet5Btn').classList.remove('selected');
-    document.getElementById('bet10Btn').classList.remove('selected');
-
-    document.getElementById('bet' + amount + 'Btn').classList.add('selected');
+  function isWeekend() {
+    const today = new Date();
+    const day = today.getDay(); // 0=Sunday,6=Saturday
+    return day === 0 || day === 6;
   }
 
-  function toggleMultiplier() {
-    multiplierActive = !multiplierActive;
-    document.getElementById('multiplierBtn').classList.toggle('selected');
+  function getWeekendToggle() {
+    const val = localStorage.getItem(WEEKEND_BONUS_KEY);
+    return val === 'true';
+  }
+  function toggleWeekend() {
+    const current = getWeekendToggle();
+    localStorage.setItem(WEEKEND_BONUS_KEY, !current);
   }
 
-  function connectWallet() {
-    const walletInput = document.getElementById('wallet');
-    if (window.ethereum) {
-      window.ethereum.request({ method: 'eth_requestAccounts' })
-      .then(accounts => {
-        walletInput.value = accounts[0];
-        alert('Wallet connected: ' + accounts[0]);
-      })
-      .catch(err => alert('Wallet connection failed: ' + err.message));
+  // Handle bet selection
+  betButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedBet = parseInt(btn.getAttribute('data-bet'));
+      betButtons.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      spinButton.disabled = false;
+      resultDiv.textContent = '';
+    });
+  });
+
+  // Double bet toggle
+  doubleBetBtn.addEventListener('click', () => {
+    doubleBet = !doubleBet;
+    doubleBetBtn.textContent = doubleBet ? '2x Bet: ON' : '2x Bet: OFF';
+    doubleBetBtn.classList.toggle('selected', doubleBet);
+    resultDiv.textContent = '';
+  });
+
+  // Spin animation
+  function spinAnimation(duration = 2000) {
+    return new Promise(resolve => {
+      const start = Date.now();
+      const interval = setInterval(() => {
+        wheels.forEach(wheel => {
+          wheel.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        });
+        if (Date.now() - start >= duration) {
+          clearInterval(interval);
+          resolve();
+        }
+      }, 70);
+    });
+  }
+
+  // Backend spin simulation with your payout rules
+  function backendSpin(bet) {
+    // Randomly pick symbols for 3 wheels
+    function randomSymbol() {
+      return symbols[Math.floor(Math.random() * symbols.length)];
+    }
+
+    const wheelsResult = [randomSymbol(), randomSymbol(), randomSymbol()];
+
+    // Payout calculation according to rules:
+    // - 3 match = jackpot payout = bet * 20 * (2 if doubleBet)
+    // - 2 match = win bet back normally (draw)
+    //    * on weekends, toggle break-even / +1 Sobex bonus alternates (only for 2 matches)
+    // - else lose
+
+    // Count matches
+    const counts = {};
+    wheelsResult.forEach(s => counts[s] = (counts[s] || 0) + 1);
+
+    // Find max count
+    const maxMatchCount = Math.max(...Object.values(counts));
+
+    let payout = 0;
+    let message = '';
+
+    if (maxMatchCount === 3) {
+      // Jackpot
+      payout = bet * 20;
+      if (doubleBet) payout *= 2;
+      message = `Jackpot! You won ${payout} Sobex!`;
+    } else if (maxMatchCount === 2) {
+      // Two match draw rules
+      if (isWeekend()) {
+        // Weekend toggle logic for 2-match draws
+        const toggle = getWeekendToggle();
+        if (toggle) {
+          payout = bet + 1; // Win bet back + 1 Sobex bonus
+          message = `Nice! Two match on weekend, plus 1 Sobex bonus! You won ${payout} Sobex!`;
+        } else {
+          payout = bet; // Just break even
+          message = `Two match on weekend, you break even with ${payout} Sobex.`;
+        }
+        toggleWeekend();
+      } else {
+        // Weekday: just break even
+        payout = bet;
+        message = `Two match! You break even with ${payout} Sobex.`;
+      }
+      if (doubleBet) payout *= 2; // Double bet doubles payout
     } else {
-      alert('MetaMask or Ethereum wallet not detected.');
-    }
-  }
-
-  function getRandomSymbol() {
-    return symbols[Math.floor(Math.random() * symbols.length)];
-  }
-
-  function animateSpin(finalResult) {
-    clearTimeouts();
-    const ticks = 25;
-    for (let i = 1; i <= 3; i++) {
-      spinTimeouts[i] = [];
-      for (let t = 0; t < ticks; t++) {
-        const timeout = setTimeout(() => {
-          document.getElementById('symbol'+i).textContent = emojiMap[getRandomSymbol()];
-        }, t * 100 + i*100);
-        spinTimeouts[i].push(timeout);
-      }
-      setTimeout(() => {
-        document.getElementById('symbol'+i).textContent = emojiMap[finalResult[i-1]];
-      }, ticks * 100 + i*100);
-    }
-  }
-
-  function clearTimeouts() {
-    for (let i = 1; i <= 3; i++) {
-      if(spinTimeouts[i]) {
-        spinTimeouts[i].forEach(to => clearTimeout(to));
-      }
-    }
-  }
-
-  // Helper to check if today is Saturday or Sunday for double win weekend
-  function isDoubleWinWeekend() {
-    const today = new Date().getDay();
-    // 0 = Sunday, 6 = Saturday
-    return today === 0 || today === 6;
-  }
-
-  function spin() {
-    const wallet = document.getElementById('wallet').value.trim();
-    if (!wallet) {
-      alert('Please enter or connect your wallet address first.');
-      return;
+      // Lose
+      payout = 0;
+      message = 'No luck this time, try again!';
     }
 
-    const spinSound = document
+    return { wheelsResult, payout, message };
+  }
+
+  // Spin button handler
+  spinButton.addEventListener('click', async () => {
+    if (spinning) return;
+    spinning = true;
+    spinButton.disabled = true;
+    resultDiv.textContent = 'Spinning... good luck!';
+
+    await spinAnimation();
+
+    const betAmount = doubleBet ? selectedBet * 2 : selectedBet;
+    const { wheelsResult, payout, message } = backendSpin(betAmount);
+
+    wheels.forEach((wheel, i) => {
+      wheel.textContent = wheelsResult[i];
+    });
+
+    resultDiv.textContent = message;
+
+    spinButton.disabled = false;
+    spinning = false;
+  });
+
+  // Wallet connect function
+  async function connectWallet() {
+    if (typeof window.ethereum === 'undefined') {
+      walletStatus.text
