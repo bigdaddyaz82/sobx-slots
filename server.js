@@ -2,13 +2,13 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
-const fs = require('fs'); // Import the 'fs' module for file system operations
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // --- BEGIN DEBUGGING FILE STRUCTURE ---
-const baseDir = __dirname; // This will be /opt/render/project/src/ on Render
+const baseDir = __dirname; // This will be /opt/render/project/ on Render (project root)
 console.log(`[DEBUG] Server starting. Current directory (__dirname): ${baseDir}`);
 
 try {
@@ -18,6 +18,7 @@ try {
   console.error(`[DEBUG] Error reading base directory ${baseDir}:`, e.message);
 }
 
+// EXPECT 'public' DIRECTORY AT THE PROJECT ROOT
 const publicDirPath = path.join(baseDir, 'public');
 console.log(`[DEBUG] Expected path for 'public' directory: ${publicDirPath}`);
 
@@ -35,13 +36,9 @@ try {
     console.log(`[DEBUG] '${publicDirPath}' exists BUT IS NOT A DIRECTORY. This is likely the problem!`);
   }
 } catch (e) {
-  // This catch block will run if 'public' does not exist (ENOENT) or other stat errors occur
   console.error(`[DEBUG] Error accessing '${publicDirPath}': ${e.message}`);
   if (e.code === 'ENOENT') {
     console.error(`[DEBUG] CRITICAL: The directory '${publicDirPath}' DOES NOT EXIST.`);
-  } else if (e.code === 'ENOTDIR') {
-    // This would mean baseDir itself or some part of its path is not a directory, highly unlikely for __dirname
-    console.error(`[DEBUG] CRITICAL: A part of the path '${publicDirPath}' is a file, not a directory leading up to 'public'.`);
   }
 }
 // --- END DEBUGGING FILE STRUCTURE ---
@@ -49,10 +46,11 @@ try {
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from 'public' folder
+// Serve static files from 'public' folder (at the project root)
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/api/spin', (req, res) => {
+  // ... (your API logic is fine)
   const numberOfReels = 3;
   const symbolsPerReel = 10;
   const result = [];
@@ -68,20 +66,16 @@ app.post('/api/spin', (req, res) => {
   }
 });
 
-// For any other route, serve index.html (SPA fallback)
+// For any other route, serve index.html (from public/index.html at the project root)
 app.get('*', (req, res) => {
   const indexPath = path.join(__dirname, 'public', 'index.html');
-  // console.log(`Attempting to serve index.html from: ${indexPath}`); // Original log for this. Debug section at top is more detailed for initial check.
   res.sendFile(indexPath, (err) => {
     if (err) {
-      console.error(`Error sending file ${indexPath}:`, err.message); // Log only message for brevity in this callback
-      if (!res.headersSent) { 
+      console.error(`Error sending file ${indexPath}:`, err.message);
+      if (!res.headersSent) {
         res.status(err.status || 500).send(`Failed to serve the application. Error: ${err.code || 'UNKNOWN'}`);
       }
     }
-    // else {
-    //   console.log(`Successfully sent ${indexPath}`); // Can be noisy, enable if needed
-    // }
   });
 });
 
