@@ -3,244 +3,250 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sobex Slots with Lever, Sound & Winning Light</title>
+  <title>Sobex Slots with Wallet & Weekend Bonus</title>
   <style>
     body {
       background: #121212;
       color: #eee;
-      font-family: Arial, sans-serif;
+      font-family: 'Courier New', Courier, monospace;
       text-align: center;
-      padding: 20px;
-    }
-    #wallet-section {
-      margin-bottom: 40px;
-    }
-    #connectWalletBtn {
-      padding: 12px 30px;
-      font-size: 18px;
-      border-radius: 12px;
-      border: 3px solid #2980b9;
-      background: #3498db;
-      color: white;
-      cursor: pointer;
-      transition: background 0.3s ease;
+      padding: 30px 20px;
       user-select: none;
-      font-family: Arial, sans-serif;
-      box-shadow: 0 4px #1c5980;
     }
-    #connectWalletBtn:hover {
-      background: #2980b9;
-      box-shadow: 0 4px #13486d;
-    }
-    #connectWalletBtn:active {
-      box-shadow: none;
-      transform: translateY(4px);
-    }
-    #walletStatus {
-      margin-top: 12px;
-      font-size: 16px;
-      font-family: Arial, sans-serif;
-      color: #ccc;
-    }
-
     #slot-machine {
       background: #222;
-      border: 6px solid #f39c12;
-      border-radius: 25px;
-      display: inline-flex;
-      align-items: center;
-      padding: 30px 50px 50px 50px;
-      box-shadow: 0 0 25px #f39c12cc;
-      user-select: none;
-      max-width: 600px;
-      box-sizing: border-box;
+      border: 5px solid #d35400;
+      border-radius: 20px;
+      display: inline-block;
+      padding: 40px 60px 50px 60px;
+      box-shadow: 0 0 25px #d35400bb;
       position: relative;
+      width: 400px;
     }
-    #winning-light {
-      position: absolute;
-      top: -40px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80px;
-      height: 40px;
-      background: radial-gradient(circle at center, #ff0000, #800000);
-      border-radius: 30px 30px 10px 10px;
-      box-shadow: 0 0 15px #ff0000, 0 0 40px #ff0000;
-      opacity: 0;
-      pointer-events: none;
-      animation: blinkRed 1s infinite;
-      z-index: 10;
-    }
-    @keyframes blinkRed {
-      0%, 100% {opacity: 0.6;}
-      50% {opacity: 1;}
-    }
-
     h1 {
-      width: 100%;
-      margin-bottom: 25px;
-      font-family: 'Courier New', Courier, monospace;
-      letter-spacing: 4px;
-      text-shadow: 0 0 8px #f39c12dd;
+      margin-bottom: 30px;
+      font-weight: bold;
+      letter-spacing: 3px;
+      text-shadow: 0 0 10px #e67e22;
     }
     #slots {
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       margin: 30px 0 40px 0;
-      flex: 1;
     }
     .slot-wheel {
-      width: 80px;
-      height: 80px;
-      margin: 0 12px;
-      font-size: 70px;
-      line-height: 80px;
-      border: 5px solid #f39c12;
+      width: 90px;
+      height: 90px;
+      margin: 0 10px;
+      font-size: 72px;
+      line-height: 90px;
+      border: 5px inset #f39c12;
       border-radius: 15px;
-      background: #111;
+      background: linear-gradient(145deg, #3e2c00, #7f5900);
       font-weight: bold;
       color: #f39c12;
-      text-shadow: 0 0 20px #f39c12ee;
-      box-shadow: inset 0 0 10px #f39c12cc;
-      user-select: none;
-      font-family: 'Courier New', Courier, monospace;
+      text-shadow: 0 0 15px #f39c12cc;
+      box-shadow: inset 0 0 8px #fff4a3aa;
     }
-    #bet-buttons, #actions {
+
+    #bet-buttons {
       display: flex;
       justify-content: center;
-      gap: 20px;
-      margin-top: 15px;
-      flex: 1;
+      gap: 25px;
+      margin-bottom: 25px;
     }
-    #bet-buttons button, #actions button {
-      flex: 1 1 100px;
-      max-width: 120px;
-      padding: 15px 0;
+    #bet-buttons button {
+      background: #f39c12;
+      border: 3px ridge #d35400;
+      border-radius: 12px;
+      padding: 12px 30px;
       font-size: 20px;
       font-weight: bold;
-      border-radius: 10px;
-      border: 3px solid #f39c12;
-      background: #f39c12;
+      cursor: pointer;
       color: #222;
-      cursor: pointer;
       transition: background 0.3s ease;
-      box-shadow: 0 4px #b36e00;
+      box-shadow: 0 3px #b86b03;
       user-select: none;
-      font-family: 'Courier New', Courier, monospace;
-      text-shadow: 0 0 4px #b36e00aa;
     }
-    #bet-buttons button.selected, #actions button.selected {
+    #bet-buttons button.selected,
+    #bet-buttons button:hover {
       background: #e67e22;
-      box-shadow: 0 4px #924f00;
-      text-shadow: 0 0 6px #924f00cc;
+      box-shadow: 0 0 15px #e67e22bb;
+      outline: none;
     }
-    #bet-buttons button:active, #actions button:active {
-      box-shadow: none;
-      transform: translateY(4px);
+
+    #actions {
+      margin-bottom: 30px;
     }
-    #spin-button {
-      margin: 35px auto 0 auto;
-      display: block;
-      width: 240px;
-      padding: 25px 0;
-      font-size: 36px;
-      font-weight: bolder;
-      background: #e74c3c;
-      color: white;
-      border-radius: 20px;
-      border: 5px solid #b63125;
-      box-shadow: 0 8px #9a261d;
+    #actions button {
+      background: #f39c12;
+      border: 3px ridge #d35400;
+      border-radius: 12px;
+      padding: 12px 30px;
+      font-size: 20px;
+      font-weight: bold;
       cursor: pointer;
-      user-select: none;
+      color: #222;
       transition: background 0.3s ease;
-      font-family: 'Courier New', Courier, monospace;
-      text-shadow: 0 0 10px #9a261d;
-      flex-shrink: 0;
+      box-shadow: 0 3px #b86b03;
+      user-select: none;
+    }
+    #actions button.selected,
+    #actions button:hover {
+      background: #e67e22;
+      box-shadow: 0 0 15px #e67e22bb;
+      outline: none;
+    }
+
+    #spin-button {
+      background: #e74c3c;
+      border: 5px ridge #c0392b;
+      border-radius: 25px;
+      padding: 18px 60px;
+      font-size: 32px;
+      font-weight: 900;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 25px #e74c3caa;
+      user-select: none;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+      margin: 0 auto 10px auto;
+      display: block;
+      letter-spacing: 4px;
     }
     #spin-button:hover:not(:disabled) {
       background: #c0392b;
-      box-shadow: 0 8px #7a2018;
-    }
-    #spin-button:active:not(:disabled) {
-      box-shadow: none;
-      transform: translateY(8px);
+      box-shadow: 0 0 35px #c0392bff;
     }
     #spin-button:disabled {
       background: #555 !important;
       cursor: not-allowed;
       box-shadow: none !important;
-      transform: none !important;
     }
+
     #result {
-      margin-top: 30px;
+      margin-top: 25px;
       font-size: 24px;
       min-height: 50px;
       font-weight: bold;
       color: #f1c40f;
-      text-shadow: 0 0 12px #f1c40faa;
-      font-family: 'Courier New', Courier, monospace;
+      text-shadow: 0 0 10px #f1c40faa;
+      height: 60px;
       user-select: none;
     }
 
-    /* Lever styles */
+    /* Wallet section */
+    #wallet-section {
+      margin-bottom: 40px;
+      font-size: 18px;
+    }
+    #connectWalletBtn {
+      background: #27ae60;
+      border: none;
+      padding: 10px 26px;
+      border-radius: 12px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 15px #27ae6055;
+      user-select: none;
+    }
+    #connectWalletBtn:hover {
+      background: #219150;
+    }
+
+    /* Old school slot machine lever */
     #lever-container {
-      position: relative;
-      width: 80px;
+      position: absolute;
+      top: 40px;
+      right: -70px;
+      width: 50px;
       height: 160px;
-      margin-left: 40px;
+      background: linear-gradient(180deg, #d35400 0%, #8e4400 100%);
+      border-radius: 25px 25px 25px 25px;
+      box-shadow: inset 0 0 10px #703800;
       cursor: pointer;
       user-select: none;
-      flex-shrink: 0;
       display: flex;
-      flex-direction: column;
-      align-items: center;
+      justify-content: center;
+      align-items: flex-end;
+      padding-bottom: 10px;
+      transition: transform 0.2s ease;
     }
-    #lever-arm {
-      width: 20px;
-      height: 120px;
-      background: #b35e00;
-      border-radius: 10px 10px 0 0;
-      box-shadow: inset 0 4px 10px #8a4700;
-      position: relative;
-      transform-origin: top center;
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    #lever-container:active {
+      transform: rotate(25deg);
+      transition: transform 0.1s ease;
     }
-    #lever-handle {
-      width: 50px;
-      height: 50px;
-      background: #d35400;
+    #lever-ball {
+      width: 40px;
+      height: 40px;
+      background: radial-gradient(circle at center, #e74c3c, #a72a1a);
       border-radius: 50%;
-      box-shadow: 0 0 10px #e67e22 inset;
-      position: absolute;
-      bottom: -40px;
-      left: 50%;
-      transform: translateX(-50%);
-      border: 3px solid #b44d00;
-    }
-    #lever-base {
-      width: 80px;
-      height: 20px;
-      background: #8b4513;
-      border-radius: 10px;
-      box-shadow: inset 0 4px 10px #5e2c00;
-      margin-top: 8px;
-      user-select: none;
+      box-shadow: 0 0 10px #e74c3ccc;
     }
 
-    /* Lever pulled down state */
-    #lever-arm.pulled {
-      transform: rotate(60deg);
-      transition: transform 0.15s ease-in;
+    /* Red blinking light on top */
+    #red-light {
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 40px;
+      background: radial-gradient(circle at center, #ff2e2e, #a30000);
+      border-radius: 50%;
+      box-shadow: 0 0 25px #ff2e2eff;
+      opacity: 0;
+      pointer-events: none;
+      animation: blink-red 1s infinite;
+    }
+    #red-light.active {
+      opacity: 1;
+    }
+    @keyframes blink-red {
+      0%, 50%, 100% { opacity: 1; }
+      25%, 75% { opacity: 0.2; }
     }
   </style>
 </head>
 <body>
 
   <div id="wallet-section">
-    <button id="connectWalletBtn">Connect Wallet</button>
+    <button id="connectWalletBtn">Connect MetaMask Wallet</button>
     <p id="walletStatus">Wallet not connected</p>
   </div>
 
   <div id="slot-machine">
-    <div id="winning-light"></div>
-    <div style="flex:1; text-align:center;">
+    <div id="red-light"></div>
+
+    <h1>Sobex Slots</h1>
+
+    <div id="slots" aria-label="Slot wheels">
+      <div class="slot-wheel" id="wheel1" aria-live="polite" aria-atomic="true">?</div>
+      <div class="slot-wheel" id="wheel2" aria-live="polite" aria-atomic="true">?</div>
+      <div class="slot-wheel" id="wheel3" aria-live="polite" aria-atomic="true">?</div>
+    </div>
+
+    <div id="bet-buttons" role="group" aria-label="Bet selection">
+      <button data-bet="1" class="selected" aria-pressed="true">1 Sobex</button>
+      <button data-bet="5" aria-pressed="false">5 Sobex</button>
+      <button data-bet="10" aria-pressed="false">10 Sobex</button>
+    </div>
+
+    <div id="actions">
+      <button id="doubleBetBtn" aria-pressed="false">2x Bet: OFF</button>
+    </div>
+
+    <button id="spin-button" disabled aria-label="Spin the slot machine">SPIN</button>
+
+    <div id="result" aria-live="polite" aria-atomic="true"></div>
+
+    <div id="lever-container" title="Pull lever to spin" role="button" tabindex="0" aria-label="Slot machine lever">
+      <div id="lever-ball"></div>
+    </div>
+  </div>
+
+<script>
+  // Sounds (using simple beep tones for demo)
+  const spinSound = new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg');
+  const winSound = new Audio('https://actions.google.com/sounds/v2v2a
